@@ -1,0 +1,36 @@
+:host {
+    width: 2rem;
+    height: 2rem;
+}
+
+.theme-button {
+    width: 100%;
+    height: 100%;
+
+    border: 1px solid white;
+    border-radius: 15%;
+
+    background-color: #121212;
+    background-image: url('../../assets/contrast-icon.svg');
+    background-position: center;
+    background-size: 80%;
+    background-repeat: no-repeat;
+
+    &.inverted {
+        background-image: url('../../assets/contrast-icon-inverted.svg');
+    }
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    // Preload images to prevent loading during theme switch
+    &::after {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+    
+        content: url('../../assets/contrast-icon.svg') url('../../assets/contrast-icon-inverted.svg');
+    }
+}

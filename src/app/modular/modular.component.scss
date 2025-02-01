@@ -1,0 +1,14 @@
+#main_canvas {
+    position: static;
+    display: block;
+    outline: none;
+}
+
+#performance_stats {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    flex-direction: row;
+}
