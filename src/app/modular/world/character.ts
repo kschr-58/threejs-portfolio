@@ -30,6 +30,8 @@ export default class Character {
     private previousAction!: THREE.AnimationAction;
     private previousMTAction!: THREE.AnimationAction;
     private fingerSnapAction!: THREE.AnimationAction;
+    private queuedAction: THREE.AnimationAction | null = null;
+    private queuedMTAction: THREE.AnimationAction | null = null;
 
     // Morph targets
     private morphTargetMeshes: THREE.Mesh[] = [];
@@ -46,8 +48,8 @@ export default class Character {
     private currentInteractionObject: THREE.Intersection | null = null;
 
     // Values
-    private animationSpeed = .01;
-    private headRotationSpeed = .02;
+    private animationSpeed = .0013;
+    private headRotationSpeed = 2;
     private headRotationEnabled = false;
     private raycastPlaneRadius = new THREE.Vector2(.79, .7);
     private blinkDelay = 5000;
@@ -184,17 +186,7 @@ export default class Character {
         this.playAnimation('Climb');
         this.playMTAnimation('Climb_SK');
 
-        const climbActionListener = (finishedAnimation: {action: THREE.AnimationAction}) => {
-            if (finishedAnimation.action.getClip().name == 'Climb') {
-
-                this.playAnimation('Wave');
-                this.playMTAnimation('Wave_SK');
-
-                this.animationMixer.removeEventListener('finished', climbActionListener);
-            }
-        }
-        
-        this.animationMixer.addEventListener('finished', climbActionListener);
+        this.queuedAction = this.animationActions.get('Wave') || null;
     }
 
     private registerAnimationEvents(): void {
@@ -211,7 +203,7 @@ export default class Character {
         });
     }
 
-    private playAnimation(name: string): void {
+    private playAnimation(name: string): void { // TODO replace fully by playAnimationAction function
         if (this.isCurrentlyPlayingAction) return;
 
         const action = this.animationActions.get(name);
@@ -228,7 +220,29 @@ export default class Character {
         this.previousAction = action;
     }
 
-    private playMTAnimation(name: string): void {
+    private playAnimationAction(action: THREE.AnimationAction): void {
+        const isMTAction = action.getClip().name.endsWith('_MT');
+        
+        if (isMTAction && this.isCurrentlyPlayingMTAction) return;
+        else if (this.isCurrentlyPlayingAction) return;
+
+        if (isMTAction && this.previousMTAction) this.previousMTAction.fadeOut(0);
+        else if (this.previousAction) this.previousAction.fadeOut(0);
+
+        action.reset();
+        action.play();
+
+        if (isMTAction) {
+            this.isCurrentlyPlayingMTAction = true;
+            this.previousMTAction = action;
+        }
+        else {
+            this.isCurrentlyPlayingAction = true;
+            this.previousAction = action;
+        }
+    }
+
+    private playMTAnimation(name: string): void { // TODO replace fully by playAnimationAction function
         const action = this.animationActions.get(name);
         if (action == undefined) throw new Error(`Animation ${name} not found`);
 
@@ -250,10 +264,18 @@ export default class Character {
     }
 
     private onAnimationFinish(finishedAnimation: {action: THREE.AnimationAction}): void {
-        if (finishedAnimation.action.getClip().name.endsWith('_SK')) {
+        const isMTAction = finishedAnimation.action.getClip().name.endsWith('_SK');
+
+        if (isMTAction) {
             this.isCurrentlyPlayingMTAction = false;
         }
         else this.isCurrentlyPlayingAction = false;
+
+        if (this.queuedAction && !this.isCurrentlyPlayingAction) {
+            console.log(`action in queue: ${this.queuedAction.getClip().name}`)
+            this.playAnimationAction(this.queuedAction);
+            this.queuedAction = null;
+        }
     }
 
     private startThemeTransition(): void {
@@ -341,12 +363,14 @@ export default class Character {
     // #region Tick
 
     public tick() {
-        this.animationMixer.update(this.animationSpeed);
+        const deltaTime = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
+
+        this.animationMixer.update(deltaTime);
         this.cursorRaycast();
 
         // Smooth headbone rotation towards mouse position or back to default position
-        if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, this.headRotationSpeed);
-        else this.headBone.quaternion.slerp(this.defaultRotation, this.headRotationSpeed);
+        if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, deltaTime * this.headRotationSpeed);
+        else this.headBone.quaternion.slerp(this.defaultRotation, deltaTime * this.headRotationSpeed);
 
         // Check if theme transition is queued
         if (this.themeTransitionQueued && !this.isCurrentlyPlayingAction) {
