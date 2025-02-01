@@ -60,6 +60,6 @@ scroller/
 fox.ts
 mug.ts
 Floor.ts
-environment.ts
 shaderObject.ts
 patternShaderObject.ts
+src/app/modular/world/environment.ts
