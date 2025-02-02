@@ -36,11 +36,11 @@ export const sourcesArray = [
     new Source(
         'characterTexture',
         'gltfTexture',
-        'http://localhost:8080/MonoboyTexture.jpg'
+        'http://localhost:8080/textures/MonoboyTexture.jpg'
     ),
     new Source(
         'characterTextureInverted',
         'gltfTexture',
-        'http://localhost:8080/MonoboyTexture_Inverted.jpg'
+        'http://localhost:8080/textures/MonoboyTexture_Inverted.jpg'
     ),
 ];

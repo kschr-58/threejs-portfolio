@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Experience } from './experience';
 import { ThemeService } from '../../services/theme.service';
 
@@ -8,6 +8,8 @@ import { ThemeService } from '../../services/theme.service';
   styleUrl: './modular.component.scss'
 })
 export class ModularComponent implements OnInit {
+  @Input() public overlayComponent!: any;
+
   private experience!: Experience;
 
   constructor(private themeService: ThemeService) { }
@@ -17,5 +19,7 @@ export class ModularComponent implements OnInit {
     if (!(canvasElement instanceof HTMLCanvasElement)) throw new Error('Could not find canvas element');
 
     this.experience = new Experience(canvasElement, this.themeService);
+
+    console.log(this.overlayComponent);
   }
 }

@@ -18,7 +18,7 @@ export default class Character {
     private headBone!: THREE.Bone;
     private headRotationObject!: THREE.Object3D;
     private raycastPlane!: THREE.Mesh;
-    private debugHeadTrackingSphere!: THREE.Mesh;
+    private headTrackingPointObject!: THREE.Mesh;
 
     // Animation
     private animationMixer: THREE.AnimationMixer;
@@ -247,7 +247,6 @@ export default class Character {
             this.isCurrentlyPlayingMTAction = false;
 
             if (this.queuedMTAction) {
-                console.log(`action in queue: ${this.queuedMTAction.getClip().name}`);
                 this.playAnimationAction(this.queuedMTAction);
                 this.queuedMTAction = null;
             }
@@ -256,7 +255,6 @@ export default class Character {
             this.isCurrentlyPlayingAction = false;
 
             if (this.queuedAction) {
-                console.log(`action in queue: ${this.queuedAction.getClip().name}`);
                 this.playAnimationAction(this.queuedAction);
                 this.queuedAction = null;
             }
@@ -277,12 +275,12 @@ export default class Character {
     // #region Raycasting
 
     private addTrackingPoint(): void {
-        this.debugHeadTrackingSphere = new THREE.Mesh(
+        this.headTrackingPointObject = new THREE.Mesh(
             new THREE.BoxGeometry(.01, .01, .01), 
             this.interactionObjectMaterial
         );
 
-        this.experience.getScene().add(this.debugHeadTrackingSphere);
+        this.experience.getScene().add(this.headTrackingPointObject);
     }
 
     private addRaycastPlane(): void {
@@ -319,28 +317,30 @@ export default class Character {
                 intersect => intersect.object == this.raycastPlane
             );
 
-            // Check for interactable objects being intersected
-            const headBoneIntersection = intersects.find(
-                intersect => intersect.object == this.headRotationObject
-            );
-
+            // Rotate head rotation object
             if (headTrackingPlaneIntersection) {
                 const contactPoint = headTrackingPlaneIntersection.point;
 
-                this.debugHeadTrackingSphere.position.x = contactPoint.x;
-                this.debugHeadTrackingSphere.position.y = contactPoint.y;
-                this.debugHeadTrackingSphere.position.z = contactPoint.z;
+                this.headTrackingPointObject.position.x = contactPoint.x;
+                this.headTrackingPointObject.position.y = contactPoint.y;
+                this.headTrackingPointObject.position.z = contactPoint.z;
             
-                this.headRotationObject.lookAt(this.debugHeadTrackingSphere.position);
+                this.headRotationObject.lookAt(this.headTrackingPointObject.position);
                 this.headRotationEnabled = true;
             }
 
-            if (headBoneIntersection) this.currentInteractionObject = headBoneIntersection;
-            else this.currentInteractionObject = null;
+            // Check for interactable objects being intersected
+            // const headBoneIntersection = intersects.find(
+            //     intersect => intersect.object == this.headRotationObject
+            // );
+
+            // if (headBoneIntersection) this.currentInteractionObject = headBoneIntersection;
+            // else this.currentInteractionObject = null;
 
             return;
         }
 
+        this.headRotationObject.quaternion.set(0, 0, 0, 0);
         this.headRotationEnabled = false;
     }
     // #endregion
@@ -354,6 +354,7 @@ export default class Character {
         this.cursorRaycast();
 
         // Smooth headbone rotation towards mouse position or back to default position
+        // FIXME when window is not active while rotation is taking place, rotation can overshoot
         if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, animationDeltaSpeed * this.headRotationSpeed);
         else this.headBone.quaternion.slerp(this.defaultRotation, animationDeltaSpeed * this.headRotationSpeed);
 
