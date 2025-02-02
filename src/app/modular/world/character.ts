@@ -1,7 +1,6 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
 import * as THREE from 'three';
-import { ThemeService } from "src/services/theme.service";
 
 export default class Character {
     private experience: Experience;
@@ -48,7 +47,7 @@ export default class Character {
     private currentInteractionObject: THREE.Intersection | null = null;
 
     // Values
-    private animationSpeed = .0013;
+    private animationSpeed = .0011;
     private headRotationSpeed = 2;
     private headRotationEnabled = false;
     private raycastPlaneRadius = new THREE.Vector2(.79, .7);
@@ -159,9 +158,7 @@ export default class Character {
             action.clampWhenFinished = true;
             action.loop = THREE.LoopOnce;
 
-            if (animation.name == 'Blink_SK') {
-                action.timeScale = 1.5;
-            } else if (animation.name == 'Fingersnap') {
+            if (animation.name == 'Fingersnap') {
                 this.fingerSnapAction = action;
             }
 
@@ -183,10 +180,14 @@ export default class Character {
     // #region Animation
 
     private startSceneAnimations(): void {
-        this.playAnimation('Climb');
-        this.playMTAnimation('Climb_SK');
+        const climbAction = this.animationActions.get('Climb');
+        const climbMTAction = this.animationActions.get('Climb_SK');
+
+        this.playAnimationAction(climbAction);
+        this.playAnimationAction(climbMTAction);
 
         this.queuedAction = this.animationActions.get('Wave') || null;
+        this.queuedMTAction = this.animationActions.get('Wave_SK') || null;
     }
 
     private registerAnimationEvents(): void {
@@ -196,65 +197,41 @@ export default class Character {
     }
 
     private startPeriodicAnimations(): void {
+        const blinkMTAction = this.animationActions.get('Blink_SK');
+
         this.experience.getTimeUtils().registerTimedEvent(this.blinkDelay).subscribe(() => {
-            if (!this.isCurrentlyPlayingMTAction) this.playMTAnimation('Blink_SK');
-
-            // TODO play random idle animation
+            if (!this.isCurrentlyPlayingMTAction) this.playAnimationAction(blinkMTAction);
         });
+
+        // TODO play random idle animations
     }
 
-    private playAnimation(name: string): void { // TODO replace fully by playAnimationAction function
-        if (this.isCurrentlyPlayingAction) return;
-
-        const action = this.animationActions.get(name);
-        if (action == undefined) throw new Error(`Animation ${name} not found`);
-
-        if (this.previousAction) {
-            this.previousAction.fadeOut(0);
-        }
-
-        action.reset();
-        action.play();
-
-        this.isCurrentlyPlayingAction = true;
-        this.previousAction = action;
-    }
-
-    private playAnimationAction(action: THREE.AnimationAction): void {
-        const isMTAction = action.getClip().name.endsWith('_MT');
+    private playAnimationAction(action: THREE.AnimationAction | undefined): void {
+        if (!action) throw new Error('Animation action is undefined');
         
-        if (isMTAction && this.isCurrentlyPlayingMTAction) return;
-        else if (this.isCurrentlyPlayingAction) return;
-
-        if (isMTAction && this.previousMTAction) this.previousMTAction.fadeOut(0);
-        else if (this.previousAction) this.previousAction.fadeOut(0);
-
-        action.reset();
-        action.play();
+        const isMTAction = action.getClip().name.endsWith('_SK');
 
         if (isMTAction) {
+            if (this.isCurrentlyPlayingMTAction) return;
+
+            if (this.previousMTAction) this.previousMTAction.fadeOut(0.1);
+
+            action.reset();
+            action.play();
+
             this.isCurrentlyPlayingMTAction = true;
             this.previousMTAction = action;
-        }
-        else {
+        } else {
+            if (this.isCurrentlyPlayingAction) return;
+
+            if (this.previousAction) this.previousAction.fadeOut(0.1); // Prevents teleporting issues
+
+            action.reset();
+            action.play();
+
             this.isCurrentlyPlayingAction = true;
             this.previousAction = action;
         }
-    }
-
-    private playMTAnimation(name: string): void { // TODO replace fully by playAnimationAction function
-        const action = this.animationActions.get(name);
-        if (action == undefined) throw new Error(`Animation ${name} not found`);
-
-        if (this.previousMTAction) {
-            this.previousMTAction.fadeOut(0);
-        }
-
-        action.reset();
-        action.play();
-
-        this.isCurrentlyPlayingMTAction = true;
-        this.previousMTAction = action;
     }
     
     private setMorphTransform(index: number, value: number): void {
@@ -268,23 +245,31 @@ export default class Character {
 
         if (isMTAction) {
             this.isCurrentlyPlayingMTAction = false;
-        }
-        else this.isCurrentlyPlayingAction = false;
 
-        if (this.queuedAction && !this.isCurrentlyPlayingAction) {
-            console.log(`action in queue: ${this.queuedAction.getClip().name}`)
-            this.playAnimationAction(this.queuedAction);
-            this.queuedAction = null;
+            if (this.queuedMTAction) {
+                console.log(`action in queue: ${this.queuedMTAction.getClip().name}`);
+                this.playAnimationAction(this.queuedMTAction);
+                this.queuedMTAction = null;
+            }
+        }
+        else {
+            this.isCurrentlyPlayingAction = false;
+
+            if (this.queuedAction) {
+                console.log(`action in queue: ${this.queuedAction.getClip().name}`);
+                this.playAnimationAction(this.queuedAction);
+                this.queuedAction = null;
+            }
         }
     }
 
     private startThemeTransition(): void {
         // Check if the theme switch animation is already running
-        if (this.fingerSnapAction.isRunning()) return; //FIXME
+        if (this.fingerSnapAction.isRunning()) return;
 
         this.themeTransitionInProgress = true;
 
-        this.playAnimation('Fingersnap');
+        this.playAnimationAction(this.fingerSnapAction);
     }
 
     // #endregion
@@ -363,14 +348,14 @@ export default class Character {
     // #region Tick
 
     public tick() {
-        const deltaTime = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
+        const animationDeltaSpeed = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
 
-        this.animationMixer.update(deltaTime);
+        this.animationMixer.update(animationDeltaSpeed);
         this.cursorRaycast();
 
         // Smooth headbone rotation towards mouse position or back to default position
-        if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, deltaTime * this.headRotationSpeed);
-        else this.headBone.quaternion.slerp(this.defaultRotation, deltaTime * this.headRotationSpeed);
+        if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, animationDeltaSpeed * this.headRotationSpeed);
+        else this.headBone.quaternion.slerp(this.defaultRotation, animationDeltaSpeed * this.headRotationSpeed);
 
         // Check if theme transition is queued
         if (this.themeTransitionQueued && !this.isCurrentlyPlayingAction) {
@@ -407,8 +392,9 @@ export default class Character {
 
         for (const animation of this.animations) {
             this.debugObject[animation.name] = () => {
-                if (animation.name.endsWith('_SK')) this.playMTAnimation(animation.name);
-                else this.playAnimation(animation.name);
+                const action = this.animationActions.get(animation.name);
+
+                this.playAnimationAction(action);
             }
     
             animationFolder.add(this.debugObject, animation.name).name(`Play ${animation.name}`);
