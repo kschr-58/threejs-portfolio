@@ -1,7 +1,7 @@
 #main_canvas {
-    position: static;
     display: block;
     outline: none;
+    z-index: -1;
 }
 
 #performance_stats {
