@@ -156,6 +156,9 @@ export class Experience {
     }
 
     private tick(): void {
+        // Prevent objects from animating while page is inactive
+        if (document.hidden) return;
+
         this.cameraManager.tick();
         this.world.tick();
         this.rendererManager.tick();

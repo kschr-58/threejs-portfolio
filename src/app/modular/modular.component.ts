@@ -19,7 +19,5 @@ export class ModularComponent implements OnInit {
     if (!(canvasElement instanceof HTMLCanvasElement)) throw new Error('Could not find canvas element');
 
     this.experience = new Experience(canvasElement, this.themeService);
-
-    console.log(this.overlayComponent);
   }
 }

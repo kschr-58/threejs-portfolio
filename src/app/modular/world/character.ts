@@ -12,10 +12,12 @@ export default class Character {
     private outlineMaterial!: THREE.MeshBasicMaterial;
     private defaultTexture!: THREE.Texture;
     private invertedTexture!: THREE.Texture;
+    private snapVFXTexture: THREE.Texture;
     private interactionObjectMaterial = new THREE.MeshBasicMaterial({color: 'red', wireframe: true, visible: false});
 
     // Scene objects
     private headBone!: THREE.Bone;
+    private indexFingerBone!: THREE.Bone;
     private headRotationObject!: THREE.Object3D;
     private raycastPlane!: THREE.Mesh;
     private headTrackingPointObject!: THREE.Mesh;
@@ -43,9 +45,6 @@ export default class Character {
     private mousePosition: THREE.Vector2 = new THREE.Vector2;
     private defaultRotation: THREE.Quaternion = new THREE.Quaternion;
 
-    // Interaction variables
-    private currentInteractionObject: THREE.Intersection | null = null;
-
     // Values
     private animationSpeed = .0011;
     private headRotationSpeed = 2;
@@ -54,6 +53,7 @@ export default class Character {
     private blinkDelay = 5000;
     private themeTransitionQueued = false;
     private themeTransitionInProgress = false;
+    private snapVFXParticleSize = .5;
 
     // Debugging
     private debugObject: {[k: string]: any} = {};
@@ -61,11 +61,14 @@ export default class Character {
     constructor(experience: Experience) {
         this.experience = experience;
 
+        // FIXME handle loading in separate async function
         const resource = experience.getResourceManager().gltfMap.get('character');
         const darkTexture = experience.getResourceManager().textureMap.get('characterTextureInverted');
+        const snapTexture = experience.getResourceManager().textureMap.get('snapVFX');
 
         if (resource == undefined || resource.scene == undefined) throw new Error('Could not load character resource');
         if (darkTexture == undefined) throw new Error('Could not load character texture');
+        if (snapTexture == undefined) throw new Error('Could not load snapVFX texture');
 
         this.gltf = resource;
         this.sceneGroup = resource.scene;
@@ -77,9 +80,11 @@ export default class Character {
         darkTexture.colorSpace = THREE.SRGBColorSpace;
         this.invertedTexture = darkTexture;
 
+        this.snapVFXTexture = snapTexture;
+
         // Initialization
         this.addToScene();
-        this.mapSceneElements();
+        this.mapCharacterComponents();
         this.mapAnimations();
         this.addRaycastPlane();
         this.addTrackingPoint();
@@ -104,7 +109,7 @@ export default class Character {
 
     // #region Initialization
     
-    private mapSceneElements() {
+    private mapCharacterComponents() {
         this.sceneGroup.traverse(node => {
             if (node instanceof THREE.SkinnedMesh) {
                 node.frustumCulled = false; // Prevent camera clipping issues when zooming in
@@ -129,27 +134,94 @@ export default class Character {
 
                     this.outlineMaterial = node.material;
                 }
-            }
-            if (node instanceof THREE.Bone && node.name == "DEF-spine006") {
-                this.headBone = node;
+            } else if (node instanceof THREE.Bone) {
+                if (node.name == "DEF-spine006") {
+                    this.headBone = node;
 
-                // Set head world position
-                node.getWorldPosition(this.headWorldPosition);
-
-                // Set default head rotation
-                this.defaultRotation = this.headBone.quaternion.clone();
-
-                // Add head rotation object
-                this.headRotationObject = new THREE.Mesh(
-                    new THREE.SphereGeometry(.2, 6, 6),
-                    this.interactionObjectMaterial
-                );
-
-                this.headRotationObject.position.copy(this.headBone.position);
-                this.headBone.add(this.headRotationObject);
+                    // Set head world position
+                    node.getWorldPosition(this.headWorldPosition);
+    
+                    // Set default head rotation
+                    this.defaultRotation = this.headBone.quaternion.clone();
+    
+                    // Add head rotation object
+                    this.headRotationObject = new THREE.Mesh(
+                        new THREE.SphereGeometry(.2, 6, 6),
+                        this.interactionObjectMaterial
+                    );
+    
+                    this.headRotationObject.position.copy(this.headBone.position);
+                    this.headBone.add(this.headRotationObject);
+                } else if (node.name == "DEF-f_index03R") {
+                    this.indexFingerBone = node;
+                }
             }
         });
     }
+
+    private addToScene() {
+        this.experience.getScene().add(this.sceneGroup);
+    }
+
+    // #endregion
+
+    // #region Lifecycle
+
+    public tick() {
+        const animationDeltaSpeed = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
+
+        this.animationMixer.update(animationDeltaSpeed);
+        this.cursorRaycast();
+
+        this.handleHeadRotation();
+
+        // Handle queued actions
+        this.handleAnimationQueue();
+        this.handleThemeTransitionQueue();
+    }
+
+    private handleHeadRotation(): void {
+        const animationDeltaSpeed = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
+
+        // Smooth headbone rotation towards mouse position or back to default position
+        if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, animationDeltaSpeed * this.headRotationSpeed);
+        else this.headBone.quaternion.slerp(this.defaultRotation, animationDeltaSpeed * this.headRotationSpeed);
+    }
+
+    private handleAnimationQueue(): void {
+        if (this.queuedAction && !this.isCurrentlyPlayingAction) {
+            this.playAnimationAction(this.queuedAction);
+            this.queuedAction = null;
+        }
+        if (this.queuedMTAction && !this.isCurrentlyPlayingMTAction) {
+            this.playAnimationAction(this.queuedMTAction);
+            this.queuedMTAction = null;
+        }
+    }
+
+    private handleThemeTransitionQueue(): void {
+        if (this.themeTransitionQueued && !this.isCurrentlyPlayingAction) {
+            this.startThemeTransition();
+        } else if (this.themeTransitionInProgress && this.fingerSnapAction.isRunning() && this.fingerSnapAction.time > 0.45) {
+            // Fire off theme transition event
+            this.experience.getThemeService().swapTheme();
+
+            this.themeTransitionInProgress = false;
+            this.themeTransitionQueued = false;
+
+            // Instantiate vfx
+            this.instantiateSnapVFX();
+        }
+    }
+
+    private setThemeMaterials(darkThemeEnabled: boolean) {
+        this.textureMaterial.map = darkThemeEnabled ? this.invertedTexture : this.defaultTexture;
+        this.outlineMaterial.color = new THREE.Color(darkThemeEnabled ? 'white' : 'black');
+    }
+
+    // #endregion
+
+    // #region Animation
 
     private mapAnimations(): void {
         for (const animation of this.animations) {
@@ -166,28 +238,15 @@ export default class Character {
         }
     }
 
-    private addToScene() {
-        this.experience.getScene().add(this.sceneGroup);
-    }
-
-    private setThemeMaterials(darkThemeEnabled: boolean) {
-        this.textureMaterial.map = darkThemeEnabled ? this.invertedTexture : this.defaultTexture;
-        this.outlineMaterial.color = new THREE.Color(darkThemeEnabled ? 'white' : 'black');
-    }
-
-    // #endregion
-
-    // #region Animation
-
     private startSceneAnimations(): void {
-        const climbAction = this.animationActions.get('Climb');
-        const climbMTAction = this.animationActions.get('Climb_SK');
+        const climbAction = this.getAnimationAction('Climb');
+        const climbMTAction = this.getAnimationAction('Climb_SK');
 
         this.playAnimationAction(climbAction);
         this.playAnimationAction(climbMTAction);
 
-        this.queuedAction = this.animationActions.get('Wave') || null;
-        this.queuedMTAction = this.animationActions.get('Wave_SK') || null;
+        this.queuedAction = this.getAnimationAction('Wave');
+        this.queuedMTAction = this.getAnimationAction('Wave_SK');
     }
 
     private registerAnimationEvents(): void {
@@ -197,13 +256,20 @@ export default class Character {
     }
 
     private startPeriodicAnimations(): void {
-        const blinkMTAction = this.animationActions.get('Blink_SK');
+        const blinkMTAction = this.getAnimationAction('Blink_SK');
 
         this.experience.getTimeUtils().registerTimedEvent(this.blinkDelay).subscribe(() => {
             if (!this.isCurrentlyPlayingMTAction) this.playAnimationAction(blinkMTAction);
         });
 
         // TODO play random idle animations
+    }
+
+    private getAnimationAction(actionName: string): THREE.AnimationAction {
+        const action = this.animationActions.get(actionName);
+        if (action == undefined) throw new Error(`Action ${actionName} could not be found`);
+
+        return action;
     }
 
     private playAnimationAction(action: THREE.AnimationAction | undefined): void {
@@ -214,20 +280,20 @@ export default class Character {
         if (isMTAction) {
             if (this.isCurrentlyPlayingMTAction) return;
 
-            if (this.previousMTAction) this.previousMTAction.fadeOut(0.1);
+            if (this.previousMTAction) this.previousMTAction.fadeOut(0);
 
-            action.reset();
-            action.play();
+            action.reset().play();
 
             this.isCurrentlyPlayingMTAction = true;
             this.previousMTAction = action;
         } else {
             if (this.isCurrentlyPlayingAction) return;
 
-            if (this.previousAction) this.previousAction.fadeOut(0.1); // Prevents teleporting issues
+            if (this.previousAction) this.previousAction.fadeOut(0);
 
-            action.reset();
-            action.play();
+            action.reset().play();
+
+            action.clampWhenFinished = true;
 
             this.isCurrentlyPlayingAction = true;
             this.previousAction = action;
@@ -245,19 +311,9 @@ export default class Character {
 
         if (isMTAction) {
             this.isCurrentlyPlayingMTAction = false;
-
-            if (this.queuedMTAction) {
-                this.playAnimationAction(this.queuedMTAction);
-                this.queuedMTAction = null;
-            }
         }
         else {
             this.isCurrentlyPlayingAction = false;
-
-            if (this.queuedAction) {
-                this.playAnimationAction(this.queuedAction);
-                this.queuedAction = null;
-            }
         }
     }
 
@@ -268,6 +324,24 @@ export default class Character {
         this.themeTransitionInProgress = true;
 
         this.playAnimationAction(this.fingerSnapAction);
+    }
+
+    private instantiateSnapVFX(): void {
+        let fingerPosition = new THREE.Vector3();
+        this.indexFingerBone.getWorldPosition(fingerPosition);
+        fingerPosition.x -= .3;
+        fingerPosition.y += .2;
+        fingerPosition.z = .3;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: this.snapVFXTexture,
+            alphaMap: this.snapVFXTexture
+        });
+        const vfx = new THREE.Sprite(spriteMaterial);
+        vfx.scale.set(this.snapVFXParticleSize, this.snapVFXParticleSize, this.snapVFXParticleSize);
+        vfx.position.copy(fingerPosition);
+
+        this.experience.getScene().add(vfx);
     }
 
     // #endregion
@@ -340,39 +414,8 @@ export default class Character {
             return;
         }
 
-        this.headRotationObject.quaternion.set(0, 0, 0, 0);
         this.headRotationEnabled = false;
     }
-    // #endregion
-
-    // #region Tick
-
-    public tick() {
-        const animationDeltaSpeed = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
-
-        this.animationMixer.update(animationDeltaSpeed);
-        this.cursorRaycast();
-
-        // Smooth headbone rotation towards mouse position or back to default position
-        // FIXME when window is not active while rotation is taking place, rotation can overshoot
-        if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, animationDeltaSpeed * this.headRotationSpeed);
-        else this.headBone.quaternion.slerp(this.defaultRotation, animationDeltaSpeed * this.headRotationSpeed);
-
-        // Check if theme transition is queued
-        if (this.themeTransitionQueued && !this.isCurrentlyPlayingAction) {
-            this.startThemeTransition();
-        }
-
-        // Check for theme transition
-        if (this.themeTransitionInProgress && this.fingerSnapAction.isRunning() && this.fingerSnapAction.time > 0.45) {
-            // Fire off theme transition event
-            this.experience.getThemeService().swapTheme();
-
-            this.themeTransitionInProgress = false;
-            this.themeTransitionQueued = false;
-        }
-    }
-
     // #endregion
 
     // #region Debugging

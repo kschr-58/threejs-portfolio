@@ -41,6 +41,11 @@ export const sourcesArray = [
     new Source(
         'characterTextureInverted',
         'gltfTexture',
-        'http://localhost:8080/textures/MonoboyTexture_Inverted.jpg'
+        'http://localhost:8080/textures/MonoboyTexture_Inverted_2.jpg'
+    ),
+    new Source(
+        'snapVFX',
+        'texture',
+        'http://localhost:8080/textures/particles/9.png'
     ),
 ];

@@ -60,8 +60,6 @@ export default class CameraManager {
 
     public tick(): void {
         if (this.controls) this.controls.update();
-
-        // TODO apply parallax
     }
 
     private initializeCamera(): void {
