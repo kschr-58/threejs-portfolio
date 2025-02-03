@@ -1,11 +1,10 @@
 :host {
     position: relative;
+    display: flex;
+    align-items: center;
     height: 100%;
     width: 50%;
     z-index: 1;
-
-    display: flex;
-    align-items: center;
 }
 
 .text-container {
@@ -13,10 +12,4 @@
     flex-direction: column;
     justify-content: center;
     margin: 0 10%;
-
-    color: #121212;
-
-    &.inverted {
-        color: white;
-    }
 }

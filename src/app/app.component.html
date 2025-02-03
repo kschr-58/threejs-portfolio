@@ -1,2 +1,4 @@
-<app-header></app-header>
-<app-modular [overlayComponent]="homeComponent"></app-modular>
+<div class="main-container" [ngClass]="{'dark-theme' : isDarkTheme}">
+    <app-header></app-header>
+    <app-modular [overlayComponent]="homeComponent"></app-modular>
+</div>

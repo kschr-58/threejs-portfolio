@@ -1,5 +1,6 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
+import { gsap } from 'gsap';
 import * as THREE from 'three';
 
 export default class Character {
@@ -13,7 +14,12 @@ export default class Character {
     private defaultTexture!: THREE.Texture;
     private invertedTexture!: THREE.Texture;
     private snapVFXTexture: THREE.Texture;
+
+    // Materials & colors
     private interactionObjectMaterial = new THREE.MeshBasicMaterial({color: 'red', wireframe: true, visible: false});
+    private vfxMaterial!: THREE.SpriteMaterial;
+    private defaultVFXColor = new THREE.Color(0xffffff);
+    private invertedVFXColor = new THREE.Color(0x121212);
 
     // Scene objects
     private headBone!: THREE.Bone;
@@ -21,6 +27,7 @@ export default class Character {
     private headRotationObject!: THREE.Object3D;
     private raycastPlane!: THREE.Mesh;
     private headTrackingPointObject!: THREE.Mesh;
+    private snapVFXSprite!: THREE.Sprite;
 
     // Animation
     private animationMixer: THREE.AnimationMixer;
@@ -33,6 +40,7 @@ export default class Character {
     private fingerSnapAction!: THREE.AnimationAction;
     private queuedAction: THREE.AnimationAction | null = null;
     private queuedMTAction: THREE.AnimationAction | null = null;
+    private vfxTL = gsap.timeline();
 
     // Morph targets
     private morphTargetMeshes: THREE.Mesh[] = [];
@@ -53,7 +61,8 @@ export default class Character {
     private blinkDelay = 5000;
     private themeTransitionQueued = false;
     private themeTransitionInProgress = false;
-    private snapVFXParticleSize = .5;
+    private snapVFXParticleScale = .08;
+    private snapVFXDuration = .25;
 
     // Debugging
     private debugObject: {[k: string]: any} = {};
@@ -80,6 +89,7 @@ export default class Character {
         darkTexture.colorSpace = THREE.SRGBColorSpace;
         this.invertedTexture = darkTexture;
 
+        snapTexture.colorSpace = THREE.SRGBColorSpace;
         this.snapVFXTexture = snapTexture;
 
         // Initialization
@@ -89,6 +99,7 @@ export default class Character {
         this.addRaycastPlane();
         this.addTrackingPoint();
         this.setThemeMaterials(experience.getThemeService().isDarkThemeEnabled());
+        this.initializeSnapVFX();
 
         // Event listeners
         const themeService = experience.getThemeService();
@@ -159,6 +170,17 @@ export default class Character {
         });
     }
 
+    private initializeSnapVFX(): void {
+        this.vfxMaterial = new THREE.SpriteMaterial({
+            sizeAttenuation: true, depthWrite: false, map: this.snapVFXTexture
+        });
+
+        this.snapVFXSprite = new THREE.Sprite(this.vfxMaterial);
+        this.snapVFXSprite.material.opacity = 0;
+
+        this.experience.getScene().add(this.snapVFXSprite);
+    }
+
     private addToScene() {
         this.experience.getScene().add(this.sceneGroup);
     }
@@ -178,6 +200,7 @@ export default class Character {
         // Handle queued actions
         this.handleAnimationQueue();
         this.handleThemeTransitionQueue();
+
     }
 
     private handleHeadRotation(): void {
@@ -202,7 +225,7 @@ export default class Character {
     private handleThemeTransitionQueue(): void {
         if (this.themeTransitionQueued && !this.isCurrentlyPlayingAction) {
             this.startThemeTransition();
-        } else if (this.themeTransitionInProgress && this.fingerSnapAction.isRunning() && this.fingerSnapAction.time > 0.45) {
+        } else if (this.themeTransitionInProgress && this.fingerSnapAction.isRunning() && this.fingerSnapAction.time > 0.5) {
             // Fire off theme transition event
             this.experience.getThemeService().swapTheme();
 
@@ -210,7 +233,7 @@ export default class Character {
             this.themeTransitionQueued = false;
 
             // Instantiate vfx
-            this.instantiateSnapVFX();
+            this.playSnapVFX(this.experience.getThemeService().isDarkThemeEnabled());
         }
     }
 
@@ -326,22 +349,22 @@ export default class Character {
         this.playAnimationAction(this.fingerSnapAction);
     }
 
-    private instantiateSnapVFX(): void {
+    private playSnapVFX(darkThemeEnabled: boolean): void {
         let fingerPosition = new THREE.Vector3();
         this.indexFingerBone.getWorldPosition(fingerPosition);
-        fingerPosition.x -= .3;
-        fingerPosition.y += .2;
+        fingerPosition.x -= .18;
+        fingerPosition.y += .02;
         fingerPosition.z = .3;
 
-        const spriteMaterial = new THREE.SpriteMaterial({
-            map: this.snapVFXTexture,
-            alphaMap: this.snapVFXTexture
-        });
-        const vfx = new THREE.Sprite(spriteMaterial);
-        vfx.scale.set(this.snapVFXParticleSize, this.snapVFXParticleSize, this.snapVFXParticleSize);
-        vfx.position.copy(fingerPosition);
+        if (!darkThemeEnabled) this.vfxMaterial.color = this.invertedVFXColor;
+        else this.vfxMaterial.color = this.defaultVFXColor;
 
-        this.experience.getScene().add(vfx);
+        this.snapVFXSprite.scale.set(this.snapVFXParticleScale, this.snapVFXParticleScale, this.snapVFXParticleScale);
+        this.snapVFXSprite.position.copy(fingerPosition);
+
+        this.vfxTL
+        .fromTo(this.vfxMaterial, { opacity: 25 }, { duration: this.snapVFXDuration, opacity: 0, ease: 'power4.out' });
+        // .to(this.snapVFXSprite.position, { duration: this.snapVFXDuration, x: fingerPosition.x -= .01 , y: fingerPosition.y += .01 });
     }
 
     // #endregion

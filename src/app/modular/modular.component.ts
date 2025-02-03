@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Experience } from './experience';
-import { ThemeService } from '../../services/theme.service';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-modular',

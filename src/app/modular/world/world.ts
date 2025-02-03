@@ -1,4 +1,4 @@
-import { ThemeService } from "src/services/theme.service";
+import { ThemeService } from "src/app/services/theme.service";
 import { Experience } from "../experience";
 import Character from "./character";
 import MonoboyTest from "./monoboyTest";

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { HomeComponent } from './home/home.component';
+import { ThemeService } from 'src/app/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -8,5 +9,14 @@ import { HomeComponent } from './home/home.component';
 })
 export class AppComponent {
   public homeComponent = HomeComponent;
-  private title = 'front-end';
+  public isDarkTheme: boolean;
+  public title = 'front-end';
+
+  constructor(private themeService: ThemeService) {
+    this.isDarkTheme = themeService.isDarkThemeEnabled();
+
+    themeService.themeChangeEvent.subscribe(enabled => {
+      this.isDarkTheme = enabled;
+    });
+  }
 }

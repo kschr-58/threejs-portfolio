@@ -38,6 +38,7 @@ export class RendererManager {
         this.renderer = new WebGLRenderer({
             canvas: canvas,
             antialias: true,
+            alpha: true
         });
 
         this.renderer.toneMapping = CineonToneMapping;

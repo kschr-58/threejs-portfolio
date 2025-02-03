@@ -46,6 +46,6 @@ export const sourcesArray = [
     new Source(
         'snapVFX',
         'texture',
-        'http://localhost:8080/textures/particles/9.png'
+        'http://localhost:8080/textures/snapvfx.png'
     ),
 ];

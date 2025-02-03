@@ -8,7 +8,7 @@ import ResourceManager from './utils/resource-manager';
 import { sourcesArray } from './sources';
 import DebugManager from './utils/debug-manager';
 import CursorUtils from './utils/cursor-utils';
-import { ThemeService } from '../../services/theme.service';
+import { ThemeService } from '../services/theme.service';
 
 let instance: Experience | null = null;
 
@@ -60,10 +60,6 @@ export class Experience {
 
         // ThreeJS objects
         this.scene = new THREE.Scene();
-
-        // Subscribe to dark mode event 
-        this.scene.background = themeService.isDarkThemeEnabled() ? this.darkThemeColor : this.lightThemeColor;
-        themeService.themeChangeEvent.subscribe(() => this.setTheme());
 
         // Manager objects
         this.cameraManager = new CameraManager(this);
@@ -164,11 +160,6 @@ export class Experience {
         this.rendererManager.tick();
 
         if (this.debugEnabled) this.debugManager.tick();
-    }
-
-    private setTheme(): void {
-        const darkThemeEnabled = this.themeService.isDarkThemeEnabled();
-        this.scene.background = darkThemeEnabled ? this.darkThemeColor : this.lightThemeColor;
     }
 
     private setDebugSettings(): void {
