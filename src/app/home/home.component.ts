@@ -7,14 +7,4 @@ import { ThemeService } from 'src/app/services/theme.service';
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  public isDarkTheme: boolean;
-
-  constructor(private themeService: ThemeService) {
-    this.isDarkTheme = themeService.isDarkThemeEnabled();
-
-    // Subscribe to theme change event
-    themeService.themeChangeEvent.subscribe(darkThemeEnabled => {
-      this.isDarkTheme = darkThemeEnabled;
-    });
-  }
 }

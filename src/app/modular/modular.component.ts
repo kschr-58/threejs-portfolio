@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Experience } from './experience';
 import { ThemeService } from '../services/theme.service';
+import { ScrollService } from '../services/scroll.service';
 
 @Component({
   selector: 'app-modular',
@@ -12,12 +13,15 @@ export class ModularComponent implements OnInit {
 
   private experience!: Experience;
 
-  constructor(private themeService: ThemeService) { }
+  constructor(
+    private themeService: ThemeService,
+    private scrollService: ScrollService
+  ) { }
 
   public ngOnInit(): void {
     const canvasElement = document.getElementById('main_canvas');
     if (!(canvasElement instanceof HTMLCanvasElement)) throw new Error('Could not find canvas element');
 
-    this.experience = new Experience(canvasElement, this.themeService);
+    this.experience = new Experience(canvasElement);
   }
 }

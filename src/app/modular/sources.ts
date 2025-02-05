@@ -34,6 +34,11 @@ export const sourcesArray = [
         'http://localhost:8080/Character.glb'
     ),
     new Source(
+        'logos',
+        'gltf',
+        'http://localhost:8080/Logos.glb'
+    ),
+    new Source(
         'characterTexture',
         'gltfTexture',
         'http://localhost:8080/textures/MonoboyTexture.jpg'
@@ -46,6 +51,11 @@ export const sourcesArray = [
     new Source(
         'snapVFX',
         'texture',
-        'http://localhost:8080/textures/snapvfx.png'
+        'http://localhost:8080/textures/Snap_VFX.jpg'
+    ),
+    new Source(
+        'logosTexture',
+        'gltfTexture',
+        'http://localhost:8080/textures/Logos_Texture.jpg'
     ),
 ];

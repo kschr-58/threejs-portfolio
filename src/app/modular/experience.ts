@@ -33,15 +33,18 @@ export class Experience {
     // ThreeJS objects
     private scene!: THREE.Scene;
 
-    // Colors
-    private lightThemeColor = new THREE.Color(0xffffff);
-    private darkThemeColor = new THREE.Color(0x292929);
+    // Materials & colors
+    private lightThemeColor = new THREE.Color(0xf2f0ef);
+    private darkThemeColor = new THREE.Color(0x1c1c1c);
+    private basicThemeMaterial!: THREE.MeshBasicMaterial;
 
     // Debugging
+    private debugMaterialRed = new THREE.MeshBasicMaterial({color: 'red', wireframe: true, visible: false});
+    private debugMaterialCyan = new THREE.MeshBasicMaterial({color: 'cyan', wireframe: true, visible: false});
     private debugObject: {[k: string]: any} = {};
-    private debugEnabled = false;
 
-    constructor(canvas: HTMLCanvasElement, private themeService: ThemeService) {
+    constructor(
+        canvas: HTMLCanvasElement) {
         // Check if instance already exists
         if (instance != null) { 
             return instance;
@@ -68,6 +71,11 @@ export class Experience {
         // World
         this.world = new World(this);
 
+        // Set theme material
+        const darkThemeEnabled = ThemeService.getInstance().isDarkThemeEnabled();
+        this.basicThemeMaterial = new THREE.MeshBasicMaterial({color: darkThemeEnabled ? this.darkThemeColor : this.lightThemeColor});
+        this.basicThemeMaterial.toneMapped = false;
+
         // Subscribe to events
         this.sizeUtils.resizeEvent.subscribe(() => {
             this.resize();
@@ -77,10 +85,14 @@ export class Experience {
             this.tick();
         });
 
+        ThemeService.getInstance().themeChangeEvent.subscribe(darkThemeEnabled => {
+            this.basicThemeMaterial.color = darkThemeEnabled ? this.darkThemeColor : this.lightThemeColor;
+        });
+
         window.experience = this;
 
-        this.debugEnabled = this.debugManager.isDebugModeEnabled();
-        if (this.debugEnabled) this.setDebugSettings();
+        const debugEnabled = this.debugManager.isDebugModeEnabled();
+        if (debugEnabled) this.setDebugSettings();
     }
 
     public getSizeUtils(): SizeUtils {
@@ -119,8 +131,16 @@ export class Experience {
         return this.debugManager;
     }
 
-    public getThemeService(): ThemeService {
-        return this.themeService;
+    public getBasicThemeMaterial(): THREE.MeshBasicMaterial {
+        return this.basicThemeMaterial;
+    }
+    
+    public getDebugMaterialRed(): THREE.MeshBasicMaterial {
+        return this.debugMaterialRed;
+    }
+
+    public getDebugMaterialCyan(): THREE.MeshBasicMaterial {
+        return this.debugMaterialCyan;
     }
 
     public destroy(): void {
@@ -159,20 +179,26 @@ export class Experience {
         this.world.tick();
         this.rendererManager.tick();
 
-        if (this.debugEnabled) this.debugManager.tick();
+        if (this.debugManager.isDebugModeEnabled()) this.debugManager.tick();
     }
 
     private setDebugSettings(): void {
         const gui = this.debugManager.getGUI();
+        this.debugMaterialCyan.visible = this.debugMaterialRed.visible = true;
+
+        this.basicThemeMaterial.copy(this.debugMaterialCyan);
 
         const sceneFolder = gui.addFolder('Scene');
-        sceneFolder.addColor(this.scene, 'background');
 
         // Materials
         this.debugObject['toggleDarkTheme'] = () => {
-            this.themeService.themeChangeRequestEvent.next();
+            ThemeService.getInstance().swapTheme();
+        }
+        this.debugObject['queueThemeSwitch'] = () => {
+            ThemeService.getInstance().themeChangeRequestEvent.next();
         }
 
         sceneFolder.add(this.debugObject, 'toggleDarkTheme').name('Toggle dark theme');
+        sceneFolder.add(this.debugObject, 'queueThemeSwitch').name('Queue theme switch');
     }
 }

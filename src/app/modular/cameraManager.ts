@@ -1,6 +1,7 @@
 import { Camera, CameraHelper, Group, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { Experience } from "./experience";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { ScrollService } from "../services/scroll.service";
 
 export default class CameraManager {
     private experience: Experience;
@@ -19,7 +20,8 @@ export default class CameraManager {
     private orthoCameraSize = .8;
     private fieldOfView: number = 35;
     private near = 2.5;
-    private far = 5;
+    private far = 4;
+    private cameraScroll = 0;
 
     // Debugging
     private debugObject: {[k: string]: any} = {};
@@ -30,6 +32,11 @@ export default class CameraManager {
         this.experience = experience;
 
         this.initializeCamera();
+
+        // Subscribe to scroll event
+        ScrollService.getInstance().scrollEvent.subscribe(scrollY => {
+            this.scrollCamera(scrollY);
+        });
 
         if (experience.getDebugManager().isDebugModeEnabled()) this.setDebugOptions();
     }
@@ -80,7 +87,14 @@ export default class CameraManager {
         this.experience.getScene().add(this.camera);
     }
 
-    //region Debugging
+    private scrollCamera(scrollY: number): void {
+        const sizes = this.experience.getSizeUtils();
+        this.cameraScroll = -scrollY / sizes.getHeight();
+
+        this.camera.position.y = this.cameraScroll;
+    }
+
+    // #region Debugging
 
     private setDebugOptions(): void {
         // Add perspective camera and orbit controls
@@ -155,5 +169,5 @@ export default class CameraManager {
         this.controls.enableDamping = true;
     }
 
-    //endregion
+    // #endregion
 }

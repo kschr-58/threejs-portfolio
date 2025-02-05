@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { HomeComponent } from './home/home.component';
 import { ThemeService } from 'src/app/services/theme.service';
+import { ScrollService } from './services/scroll.service';
 
 @Component({
   selector: 'app-root',
@@ -8,11 +9,13 @@ import { ThemeService } from 'src/app/services/theme.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  @HostBinding('class.dark-theme') public isDarkTheme: boolean;
   public homeComponent = HomeComponent;
-  public isDarkTheme: boolean;
-  public title = 'front-end';
 
-  constructor(private themeService: ThemeService) {
+  constructor(
+    private themeService: ThemeService,
+    private scrollService: ScrollService
+  ) {
     this.isDarkTheme = themeService.isDarkThemeEnabled();
 
     themeService.themeChangeEvent.subscribe(enabled => {

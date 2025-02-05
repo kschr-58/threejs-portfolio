@@ -1,7 +1,8 @@
-import { ThemeService } from "src/app/services/theme.service";
 import { Experience } from "../experience";
 import Character from "./character";
-import MonoboyTest from "./monoboyTest";
+import ForegroundPlane from "./foreground-plane";
+import Logos from "./logos/logos";
+import MonoboyTest from "./monoboy-test";
 import Study from "./study";
 
 export default class World {
@@ -9,6 +10,8 @@ export default class World {
     private study!: Study;
     private monoboy!: MonoboyTest;
     private character!: Character;
+    private foregroundPlane!: ForegroundPlane;
+    private logos!: Logos;
 
     constructor(experience: Experience) {
         this.experience = experience;
@@ -28,16 +31,15 @@ export default class World {
         if (this.study != undefined) this.study.tick();
         if (this.monoboy != undefined) this.monoboy.tick();
         if (this.character != undefined) this.character.tick();
+        if (this.logos != undefined) this.logos.tick();
     }
 
     private onResourcesLoad(): void {
-        // Study
         // this.study = new Study(this.experience);
-
-        // Monoboy test
         // this.monoboy = new MonoboyTest(this.experience);
 
-        // Character
         this.character = new Character(this.experience);
+        this.foregroundPlane = new ForegroundPlane(this.experience);
+        this.logos = new Logos(this.experience);
     }
 }
