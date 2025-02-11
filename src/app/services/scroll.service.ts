@@ -7,37 +7,24 @@ import { Subject } from "rxjs";
 export class ScrollService {
     private static INSTANCE: ScrollService;
     private scrollTop = 0;
-    private isScrollInProgress = false;
-    private scrollTimeout!: ReturnType<typeof setTimeout>;
+    private currentSection: number = 0;
 
     // Events
     public scrollEvent = new Subject<number>();
+    public newSectionEvent = new Subject<number>();
 
     constructor() {
         if (!ScrollService.INSTANCE) ScrollService.INSTANCE = this;
         else throw Error('Trying to re-instantiate scroll service');
 
+        // Scroll to top of page
+        window.onbeforeunload = () => {
+            window.scrollTo(0, 0);
+
+        }
+
         window.addEventListener('scroll', () => {
-            clearTimeout(this.scrollTimeout);
-
-            this.scrollTimeout = setTimeout(() => {
-                this.isScrollInProgress = false;
-            }, 100);
-
-            const newScrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            const downwardScroll = newScrollTop > this.scrollTop;
-
-            this.updateScrollTop(newScrollTop);
-
-            if (this.isScrollInProgress) return;
-            
-            this.isScrollInProgress = true;
-
-            if (!downwardScroll) {
-                this.smoothScrollUp();
-            } else if (downwardScroll) {
-                this.smoothScrollDown();
-            }
+            this.onScroll();
           });
     }
 
@@ -49,18 +36,22 @@ export class ScrollService {
         return this.scrollTop;
     }
 
-    private updateScrollTop(newScrollTop: number) {
+    public getSection(): number {
+        return this.currentSection;
+    }
+
+    private onScroll() {
+        const newScrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
         this.scrollTop = newScrollTop;
         this.scrollEvent.next(this.scrollTop);
-    }
 
-    private smoothScrollUp() {
-        // FIXME current component dependent
-        document.querySelector('app-home')?.scrollIntoView({behavior: 'smooth'});
-    }
+        const newSection = Math.round(this.scrollTop / innerHeight);
 
-    private smoothScrollDown() {
-        // FIXME current component dependent
-        document.querySelector('app-skills')?.scrollIntoView({behavior: 'smooth'});
+        if (this.currentSection != newSection) {
+            this.currentSection = newSection;
+            this.newSectionEvent.next(newSection);
+        }
+
     }
 }

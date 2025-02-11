@@ -64,6 +64,7 @@ export default class ResourceManager {
             this.resourcesLoadedEvent.next(true);
         } catch (err) {
             this.resourcesLoadedEvent.next(false);
+            console.log(err);
         }
     }
 

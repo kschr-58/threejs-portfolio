@@ -17,7 +17,7 @@ export default class CameraManager {
     private orthoCamStartingPosition = new Vector3(0, 0, 3);
 
     // Values
-    private orthoCameraSize = .8;
+    private frustrumSize = 1;
     private fieldOfView: number = 35;
     private near = 2.5;
     private far = 4;
@@ -51,10 +51,12 @@ export default class CameraManager {
 
     public resize(): void {
         const sizes = this.experience.getSizeUtils();
-        const aspect = sizes.getWidth() / sizes.getHeight();
+        const aspect = sizes.getAspect();
 
-        this.camera.left = (this.orthoCameraSize * aspect) / -2;
-        this.camera.right = (this.orthoCameraSize * aspect) / 2;
+        this.camera.left = (this.frustrumSize * aspect) / -2;
+        this.camera.right = (this.frustrumSize * aspect) / 2;
+        this.camera.top = this.frustrumSize / 2,
+        this.camera.bottom = this.frustrumSize / -2,
 
         this.camera.updateProjectionMatrix();
 
@@ -62,6 +64,7 @@ export default class CameraManager {
         if (this.debugCamera) {
             this.debugCamera.aspect = aspect;
             this.debugCamera.updateProjectionMatrix();
+            this.cameraHelper.update();
         }
     }
 
@@ -71,13 +74,13 @@ export default class CameraManager {
 
     private initializeCamera(): void {
         const sizes = this.experience.getSizeUtils();
-        const aspect = sizes.getWidth() / sizes.getHeight(); 
+        const aspect = sizes.getAspect();
 
         this.camera = new OrthographicCamera(
-            (this.orthoCameraSize * aspect) / -2,
-            (this.orthoCameraSize * aspect) / 2,
-            this.orthoCameraSize / 2,
-            this.orthoCameraSize / -2,
+            (this.frustrumSize * aspect) / -2,
+            (this.frustrumSize * aspect) / 2,
+            this.frustrumSize / 2,
+            this.frustrumSize / -2,
             this.near,
             this.far
         );
@@ -110,7 +113,7 @@ export default class CameraManager {
 
         const cameraFolder = gui.addFolder('Camera adjustment');
 
-        this.debugObject['size'] = this.orthoCameraSize;
+        this.debugObject['size'] = this.frustrumSize;
 
         this.debugObject['updateProjectionMatrix'] = () => {
             this.camera.updateProjectionMatrix();
@@ -119,7 +122,7 @@ export default class CameraManager {
 
         this.debugObject['resizeCamera'] = (newSize: number) => {
             const sizes = this.experience.getSizeUtils();
-            const aspect = sizes.getWidth() / sizes.getHeight(); 
+            const aspect = sizes.getAspect();
 
             console.log(`New size: ${newSize}`);
             this.camera.left = (newSize * aspect) / -2;
@@ -139,12 +142,12 @@ export default class CameraManager {
         cameraFolder.add(this.camera, 'near', -10, 10, 0.1).onChange(this.debugObject['updateProjectionMatrix']);
         cameraFolder.add(this.camera, 'far', 10, 100, 1).onChange(this.debugObject['updateProjectionMatrix']);
         cameraFolder.add(this.debugObject, 'size', 0.1, 5, 0.1).onChange(this.debugObject['resizeCamera']);
-        cameraFolder.add(this.debugObject, 'switchCamera').name('Switch camera');
+        cameraFolder.add(this.debugObject, 'switchCamera').name('Switch to debug camera');
     }
 
     private initializeDebugCamera(): void {
         const sizes = this.experience.getSizeUtils();
-        const aspect = sizes.getWidth() / sizes.getHeight(); 
+        const aspect = sizes.getAspect();
         const scene = this.experience.getScene();
 
         this.debugCamera = new PerspectiveCamera(

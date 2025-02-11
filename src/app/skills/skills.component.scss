@@ -2,19 +2,41 @@
 
 :host {
     display: flex;
+    flex-direction: column;
     align-items: flex-start;
     height: 100vh;
-    width: 50%;
+    width: 100%;
+
+    padding: $header-banner-size 0;
+    box-sizing: border-box;
 }
 
-.text-container {
+.section-container {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    margin: $header-banner-size 10%;
+    justify-content: flex-start;
+    padding: 0 5%;
+    box-sizing: border-box;
 
     h2 {
         font-size: 3.5rem;
-        // margin: 1rem 0;
+        margin: 5vh 0;
     }
+
+    &.top-section {
+        height: 35%;
+    }
+
+    &.bottom-section {
+        flex-grow: 2;
+    }
+}
+
+.showcase {
+    width: 100%;
+    display: flex;
+    flex-grow: 2;
+    flex-direction: row;
+    gap: 2%;
 }

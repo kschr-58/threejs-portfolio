@@ -8,6 +8,7 @@ import { ModularComponent } from './modular/modular.component';
 import { ThemeButtonComponent } from './theme-button/theme-button.component';
 import { HomeComponent } from './home/home.component';
 import { SkillsComponent } from './skills/skills.component';
+import { ShowcaseItemComponent } from './showcase-item/showcase-item.component';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { SkillsComponent } from './skills/skills.component';
     ThemeButtonComponent,
     HomeComponent,
     SkillsComponent,
+    ShowcaseItemComponent
   ],
   imports: [
     BrowserModule,

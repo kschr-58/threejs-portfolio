@@ -12,6 +12,9 @@ export class ThemeService {
     public themeChangeRequestEvent = new Subject<void>();
     public themeChangeEvent = new Subject<boolean>();
 
+    // Values
+    private themeBehaviourOverridden = false;
+
     constructor() {
         if (!ThemeService.INSTANCE) ThemeService.INSTANCE = this;
         else Error('Trying to re-instantiate theme service');
@@ -24,6 +27,10 @@ export class ThemeService {
         themeQuery.addEventListener('change', event => {
             if (this.darkThemeEnabled != themeQuery.matches) this.themeChangeRequestEvent.next();
         });
+
+        this.themeChangeRequestEvent.subscribe(() => {
+            if (!this.themeBehaviourOverridden) this.swapTheme();
+        })
     }
 
     public static getInstance(): ThemeService {
@@ -36,6 +43,10 @@ export class ThemeService {
 
     public setTheme(isDarkTheme: boolean): void {
         this.darkThemeEnabled = isDarkTheme;
+    }
+
+    public overrideThemeBehaviour(isOverridden: boolean): void {
+        this.themeBehaviourOverridden = isOverridden;
     }
 
     public swapTheme(): void {

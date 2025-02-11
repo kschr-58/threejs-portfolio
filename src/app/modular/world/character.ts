@@ -3,10 +3,10 @@ import { Experience } from "../experience";
 import { gsap } from 'gsap';
 import * as THREE from 'three';
 import { ThemeService } from "src/app/services/theme.service";
+import PageComponent3D from "./page-component-3d";
+import { ScrollService } from "src/app/services/scroll.service";
 
-export default class Character {
-    private experience: Experience;
-
+export default class Character extends PageComponent3D {
     // Resources
     private sceneGroup!: THREE.Group;
     private textureMaterial!: THREE.MeshBasicMaterial;
@@ -47,16 +47,17 @@ export default class Character {
     private morphTargetInfluences: number[] = [];
 
     // Positions and rotations
-    private scenePosition = new THREE.Vector3(.38, -1.575, -.5);
     private headWorldPosition = new THREE.Vector3();
     private mousePosition: THREE.Vector2 = new THREE.Vector2;
     private defaultRotation: THREE.Quaternion = new THREE.Quaternion;
+    private raycastPlaneOffset = new THREE.Vector3(-.05, .35, .5);
 
     // Values
+    private sceneScale = 1.3;
     private animationSpeed = .0011;
     private headRotationSpeed = 2;
     private headRotationEnabled = false;
-    private raycastPlaneRadius = new THREE.Vector2(.79, .7);
+    private raycastPlaneRadius = new THREE.Vector2(.75, .65);
     private blinkDelay = 5000;
     private themeTransitionQueued = false;
     private themeTransitionInProgress = false;
@@ -66,14 +67,12 @@ export default class Character {
     // Debugging
     private debugObject: {[k: string]: any} = {};
 
-    constructor(experience: Experience) {
-        this.experience = experience;
+    constructor(experience: Experience, page: number, leftMargin: number, topMargin: number, zPosition: number) {
+        super(experience, page, leftMargin, topMargin, zPosition);
 
         // Initialization
         this.mapResources();
         this.addToScene();
-        this.mapCharacterComponents();
-        this.mapAnimations();
         this.addRaycastPlane();
         this.addTrackingPoint();
         this.setThemeMaterials(ThemeService.getInstance().isDarkThemeEnabled());
@@ -81,12 +80,18 @@ export default class Character {
 
         // Event listeners
         const themeService = ThemeService.getInstance();
+        const scrollService = ScrollService.getInstance();
         themeService.themeChangeRequestEvent.subscribe(() => {
-            this.themeTransitionQueued = true;
+            if (page == scrollService.getSection()) this.themeTransitionQueued = true;
         });
         themeService.themeChangeEvent.subscribe(darkThemeEnabled => {
             this.setThemeMaterials(darkThemeEnabled);
-        })
+        });
+        scrollService.newSectionEvent.subscribe(newSection => {
+            themeService.overrideThemeBehaviour(newSection == page);
+        });
+
+        if (scrollService.getSection() == page) themeService.overrideThemeBehaviour(true);
 
         // Animations
         this.registerAnimationEvents();
@@ -98,7 +103,7 @@ export default class Character {
 
     // #region Initialization
 
-    private mapResources(): void {
+    protected mapResources(): void {
         const characterResource = this.experience.getResourceManager().gltfMap.get('character');
         const invertedTextureResource = this.experience.getResourceManager().textureMap.get('characterTextureInverted');
         const snapVFXResource = this.experience.getResourceManager().textureMap.get('snapVFX');
@@ -109,7 +114,6 @@ export default class Character {
             snapVFXResource == undefined) throw new Error('Could not load character resources');
 
         this.sceneGroup = characterResource.scene;
-        this.sceneGroup.position.copy(this.scenePosition);
 
         this.animationMixer = new THREE.AnimationMixer(this.sceneGroup);
         this.animations = characterResource.animations;
@@ -119,10 +123,16 @@ export default class Character {
 
         snapVFXResource.colorSpace = THREE.SRGBColorSpace;
         this.snapVFXTexture = snapVFXResource;
+
+        this.mapCharacterComponents();
+        this.mapAnimations();
     }
     
     private mapCharacterComponents(): void {
         this.sceneGroup.traverse(node => {
+            if (node instanceof THREE.Object3D && node.name == 'Scene') {
+                this.positionableObject = node;
+            }
             if (node instanceof THREE.SkinnedMesh) {
                 node.frustumCulled = false; // Prevent camera clipping issues when zooming in
                 if (this.morphTargetsDict == undefined && node.morphTargetDictionary && node.morphTargetInfluences) {
@@ -161,6 +171,8 @@ export default class Character {
                         new THREE.SphereGeometry(.2, 6, 6),
                         this.experience.getDebugMaterialRed()
                     );
+
+                    this.headRotationObject.name = 'Head_Rotation_Object'; // Add name for debugging purposes
     
                     this.headRotationObject.position.copy(this.headBone.position);
                     this.headBone.add(this.headRotationObject);
@@ -182,8 +194,11 @@ export default class Character {
         this.experience.getScene().add(this.snapVFXSprite);
     }
 
-    private addToScene() {
+    protected override addToScene(): void {
         this.experience.getScene().add(this.sceneGroup);
+        this.sceneGroup.scale.set(this.sceneScale, this.sceneScale, this.sceneScale);
+
+        super.addToScene();
     }
 
     // #endregion
@@ -391,17 +406,17 @@ export default class Character {
         this.experience.getScene().add(this.headTrackingPointObject);
     }
 
-    private addRaycastPlane(): void {
+    private addRaycastPlane(): void { // TODO turn raycast plane into separate Component3D object
         this.raycastPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(this.raycastPlaneRadius.x, this.raycastPlaneRadius.y),
             this.experience.getDebugMaterialRed()
         );
 
-        this.raycastPlane.position.x = this.headWorldPosition.x - .07;
-        this.raycastPlane.position.y = -.03;
-        this.raycastPlane.position.z = this.headWorldPosition.z + .45; // Slight offset for tracking purposes
+        this.raycastPlane.position.x = this.raycastPlaneOffset.x;
+        this.raycastPlane.position.y = this.raycastPlaneOffset.y;
+        this.raycastPlane.position.z = this.raycastPlaneOffset.z;
 
-        this.experience.getScene().add(this.raycastPlane);
+        this.positionableObject.add(this.raycastPlane);
 
         this.raycastPlane.updateMatrixWorld();
     }
@@ -462,8 +477,8 @@ export default class Character {
 
         const positionFolder = characterFolder.addFolder('Positioning');
 
-        positionFolder.add(this.sceneGroup.position, 'x', -2, 2, 0.01);
-        positionFolder.add(this.sceneGroup.position, 'y', -2, 2, 0.01);
+        positionFolder.add(this.positionableObject.position, 'x', -2, 2, 0.01);
+        positionFolder.add(this.positionableObject.position, 'y', -2, 2, 0.01);
         
         // Animations
         const animationFolder = characterFolder.addFolder('Animation');

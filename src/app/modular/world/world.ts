@@ -1,7 +1,7 @@
 import { Experience } from "../experience";
 import Character from "./character";
 import ForegroundPlane from "./foreground-plane";
-import Logos from "./logos/logos";
+import LogosCollection from "./logos/logos-collection";
 import MonoboyTest from "./monoboy-test";
 import Study from "./study";
 
@@ -11,7 +11,7 @@ export default class World {
     private monoboy!: MonoboyTest;
     private character!: Character;
     private foregroundPlane!: ForegroundPlane;
-    private logos!: Logos;
+    private logos!: LogosCollection;
 
     constructor(experience: Experience) {
         this.experience = experience;
@@ -35,11 +35,8 @@ export default class World {
     }
 
     private onResourcesLoad(): void {
-        // this.study = new Study(this.experience);
-        // this.monoboy = new MonoboyTest(this.experience);
-
-        this.character = new Character(this.experience);
-        this.foregroundPlane = new ForegroundPlane(this.experience);
-        this.logos = new Logos(this.experience);
+        this.character = new Character(this.experience, 0, 75, 100.5, -.5);
+        this.foregroundPlane = new ForegroundPlane(this.experience, 1, 50, 50, 0.07);
+        this.logos = new LogosCollection(this.experience, 1, 7.5, 30, .15, 9, 6.5, 10);
     }
 }

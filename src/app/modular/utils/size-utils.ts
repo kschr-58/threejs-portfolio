@@ -28,6 +28,10 @@ export default class SizeUtils {
         return this.height;
     }
 
+    public getAspect(): number {
+        return this.width / this.height;
+    }
+
     public getPixelRatio(): number {
         return this.pixelRatio;
     }
@@ -36,6 +40,5 @@ export default class SizeUtils {
         this.width = window.innerWidth;
         this.height = window.innerHeight;
         this.pixelRatio = Math.min(window.devicePixelRatio, 2); // Limit pixel ratio to maximum of 2
-
     }
 }

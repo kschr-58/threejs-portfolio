@@ -1,18 +1,22 @@
 import { Mesh, Vector3 } from "three";
 import { Experience } from "../../experience";
+import PageComponent3D from "../page-component-3d";
 
-export default class Logo {
-    private experience: Experience;
-    private mesh!: Mesh;
+export default class Logo extends PageComponent3D {
+    constructor(experience: Experience, mesh: Mesh, page: number, leftMargin: number, topMargin: number, zPosition: number) {
+        super(experience, page, leftMargin, topMargin, zPosition);
 
-    private position: Vector3;
-
-    constructor(experience: Experience, mesh: Mesh, position: Vector3) {
-        this.experience = experience;
         this.mesh = mesh;
-        this.position = position;
-
+        this.mapResources();
         this.addToScene();
+    }
+
+    protected mapResources(): void {
+        this.mesh.scale.x *= .8;
+        this.mesh.scale.y *= .8;
+        this.mesh.scale.z *= .8;
+
+        this.positionableObject = this.mesh;
     }
 
     public getMesh(): Mesh {
@@ -22,15 +26,19 @@ export default class Logo {
     public tick(): void {
         const elapsedTime = this.experience.getTimeUtils().getElapsedTime();
         const yRotation = (Math.sin(elapsedTime) + 1) * Math.PI; // Allow for full rotation to the other side
-        const zRotation = Math.sin(elapsedTime) *  - .5;
+        const zRotation = Math.sin(elapsedTime) *  - .1;
 
         this.mesh.rotation.y = yRotation;
         this.mesh.rotation.z = zRotation;
     }
 
-    private addToScene(): void {
-        this.mesh.position.copy(this.position);
-
+    protected override addToScene(): void {
         this.experience.getScene().add(this.mesh);
+
+        super.addToScene();
+    }
+
+    protected override positionComponent(): void {
+        super.positionComponent();
     }
 }
