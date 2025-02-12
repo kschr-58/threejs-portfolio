@@ -1,6 +1,7 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
 import * as THREE from 'three';
+import ResourceLoadingService from "src/app/services/resource-loading.service";
 
 export default class MonoboyTest {
     private experience: Experience;
@@ -36,7 +37,7 @@ export default class MonoboyTest {
     constructor(experience: Experience) {
         this.experience = experience;
 
-        const resource = experience.getResourceManager().gltfMap.get('monoboyTest');
+        const resource = ResourceLoadingService.getInstance().gltfMap.get('monoboyTest');
         if (resource == undefined || resource.scene == undefined) throw new Error('Could not load monoboytest resource');
 
         this.gltf = resource;

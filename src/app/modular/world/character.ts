@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { ThemeService } from "src/app/services/theme.service";
 import PageComponent3D from "./page-component-3d";
 import { ScrollService } from "src/app/services/scroll.service";
+import ResourceLoadingService from "src/app/services/resource-loading.service";
 
 export default class Character extends PageComponent3D {
     // Resources
@@ -104,9 +105,9 @@ export default class Character extends PageComponent3D {
     // #region Initialization
 
     protected mapResources(): void {
-        const characterResource = this.experience.getResourceManager().gltfMap.get('character');
-        const invertedTextureResource = this.experience.getResourceManager().textureMap.get('characterTextureInverted');
-        const snapVFXResource = this.experience.getResourceManager().textureMap.get('snapVFX');
+        const characterResource = ResourceLoadingService.getInstance().gltfMap.get('character');
+        const invertedTextureResource = ResourceLoadingService.getInstance().textureMap.get('characterTextureInverted');
+        const snapVFXResource = ResourceLoadingService.getInstance().textureMap.get('snapVFX');
 
         if (characterResource == undefined ||
             characterResource.scene == undefined ||

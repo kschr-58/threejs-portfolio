@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import gsap from "gsap";
+import ResourceLoadingService from '../services/resource-loading.service';
 
 @Component({
   selector: 'app-home',
@@ -14,6 +15,10 @@ export class HomeComponent implements OnInit {
 
   constructor() {
     this.animationTimeline = gsap.timeline().add('start');
+
+    ResourceLoadingService.getInstance().loadingFinishedEvent.subscribe(() => {
+      this.startTextAnimation();
+    });
   }
 
   public ngOnInit(): void {
@@ -25,14 +30,12 @@ export class HomeComponent implements OnInit {
 
     this.headerElement = header;
     this.subtextElement = subtext;
-
-    this.startTextAnimation();
   }
 
   private startTextAnimation(): void {
     this.animationTimeline
     .fromTo(this.headerElement, {autoAlpha: 1, yPercent: -100}, {autoAlpha: 1, yPercent: 0, duration: 1, delay: .5, ease: 'circ.out'}, 'start')
-    .fromTo(this.subtextElement, {autoAlpha: 1, yPercent: 100}, {autoAlpha: 1, yPercent: 0, duration: 1, delay: 1.2, ease: 'circ.out'}, 'start')
+    .fromTo(this.subtextElement, {autoAlpha: 1, yPercent: 100}, {autoAlpha: 1, yPercent: 0, duration: 1, delay: 1.3, ease: 'circ.out'}, 'start')
     .then(() => {
       for (let bar of this.overlayBars) {
         if (bar instanceof HTMLElement) bar.style.visibility = 'hidden';

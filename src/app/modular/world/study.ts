@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
 
 // Shader imports
 import vertexShader from "../shaders/coffeeSmoke/vertex.glsl";
 import fragmentShader from "../shaders/coffeeSmoke/fragment.glsl";
+import ResourceLoadingService from "src/app/services/resource-loading.service";
 
 export default class Study {
     private experience: Experience;
@@ -20,10 +20,10 @@ export default class Study {
     constructor(experience: Experience) {
         this.experience = experience;
 
-        const resource = experience.getResourceManager().gltfMap.get('study');
+        const resource = ResourceLoadingService.getInstance().gltfMap.get('study');
         if (resource == undefined || resource.scene == undefined) throw new Error('Study resource cannot be loaded');
 
-        const perlin = experience.getResourceManager().textureMap.get('perlin');
+        const perlin = ResourceLoadingService.getInstance().textureMap.get('perlin');
         if (perlin == undefined) throw new Error('Perlin texture cannot be loaded');
         
         this.sceneGroup = resource.scene;

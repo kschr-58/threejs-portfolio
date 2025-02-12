@@ -1,3 +1,4 @@
+import ResourceLoadingService from "src/app/services/resource-loading.service";
 import { Experience } from "../experience";
 import Character from "./character";
 import ForegroundPlane from "./foreground-plane";
@@ -17,7 +18,7 @@ export default class World {
         this.experience = experience;
 
         // Subscribe to resources loading event
-        this.experience.getResourceManager().resourcesLoadedEvent.subscribe((success: boolean) => {
+        ResourceLoadingService.getInstance().loadingFinishedEvent.subscribe((success: boolean) => {
             if (!success) {
                 return console.error('Failed to load resources');
             }
@@ -27,7 +28,7 @@ export default class World {
     }
 
     public tick(): void {
-        if (!this.experience.getResourceManager().resourcesReady()) return;
+        if (!ResourceLoadingService.getInstance().resourcesReady()) return;
         if (this.study != undefined) this.study.tick();
         if (this.monoboy != undefined) this.monoboy.tick();
         if (this.character != undefined) this.character.tick();

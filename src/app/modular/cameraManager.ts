@@ -55,8 +55,8 @@ export default class CameraManager {
 
         this.camera.left = (this.frustrumSize * aspect) / -2;
         this.camera.right = (this.frustrumSize * aspect) / 2;
-        this.camera.top = this.frustrumSize / 2,
-        this.camera.bottom = this.frustrumSize / -2,
+        // this.camera.top = this.frustrumSize / 2,
+        // this.camera.bottom = this.frustrumSize / -2,
 
         this.camera.updateProjectionMatrix();
 

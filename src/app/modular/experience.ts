@@ -4,11 +4,11 @@ import TimeUtils from './utils/time-utils';
 import CameraManager from './cameraManager';
 import { RendererManager } from './rendererManager';
 import World from './world/world';
-import ResourceManager from './utils/resource-manager';
-import { sourcesArray } from './sources';
 import DebugManager from './utils/debug-manager';
 import CursorUtils from './utils/cursor-utils';
 import { ThemeService } from '../services/theme.service';
+import ResourceLoadingService from '../services/resource-loading.service';
+import { sourcesArray } from 'src/app/modular/sources';
 
 let instance: Experience | null = null;
 
@@ -16,13 +16,12 @@ declare global {
     interface Window { experience: Experience } // Allows for console debugging
 }
 
-export class Experience {
+export class Experience { //TODO migrate to modular component 
     // Utils objects
     private canvas!: HTMLCanvasElement;
     private sizeUtils!: SizeUtils;
     private timeUtils!: TimeUtils;
     private cursorUtils!: CursorUtils;
-    private resourceManager!: ResourceManager;
     private cameraManager!: CameraManager;
     private rendererManager!: RendererManager;
     private debugManager!: DebugManager;
@@ -54,8 +53,10 @@ export class Experience {
 
         this.canvas = canvas;
 
+        // Load resources
+        ResourceLoadingService.getInstance().loadResources(sourcesArray);
+
         // Utility objects
-        this.resourceManager = new ResourceManager(sourcesArray);
         this.sizeUtils = new SizeUtils();
         this.timeUtils = new TimeUtils();
         this.cursorUtils = new CursorUtils();
@@ -105,10 +106,6 @@ export class Experience {
 
     public getCursorUtils(): CursorUtils {
         return this.cursorUtils;
-    }
-
-    public getResourceManager(): ResourceManager {
-        return this.resourceManager;
     }
 
     public getCanvas(): HTMLCanvasElement {

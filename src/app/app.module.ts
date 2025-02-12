@@ -9,6 +9,8 @@ import { ThemeButtonComponent } from './theme-button/theme-button.component';
 import { HomeComponent } from './home/home.component';
 import { SkillsComponent } from './skills/skills.component';
 import { ShowcaseItemComponent } from './showcase-item/showcase-item.component';
+import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
+import { RealisticComponent } from './realistic/realistic.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +20,8 @@ import { ShowcaseItemComponent } from './showcase-item/showcase-item.component';
     ThemeButtonComponent,
     HomeComponent,
     SkillsComponent,
-    ShowcaseItemComponent
+    ShowcaseItemComponent,
+    LoadingOverlayComponent,
   ],
   imports: [
     BrowserModule,

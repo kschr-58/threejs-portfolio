@@ -20,12 +20,15 @@ export class ScrollService {
         // Scroll to top of page
         window.onbeforeunload = () => {
             window.scrollTo(0, 0);
-
         }
 
         window.addEventListener('scroll', () => {
-            this.onScroll();
-          });
+            this.recalculateScrollTop();
+        });
+
+        window.addEventListener('resize', () => {
+            this.onResize();
+        });
     }
 
     public static getInstance(): ScrollService {
@@ -40,7 +43,7 @@ export class ScrollService {
         return this.currentSection;
     }
 
-    private onScroll() {
+    private recalculateScrollTop(): void {
         const newScrollTop = document.documentElement.scrollTop || document.body.scrollTop;
 
         this.scrollTop = newScrollTop;
@@ -52,6 +55,11 @@ export class ScrollService {
             this.currentSection = newSection;
             this.newSectionEvent.next(newSection);
         }
+    }
 
+    private onResize(): void {
+        // Scroll to currently active section to prevent 3d element positioning issues
+        const sectionPosition = innerHeight * this.currentSection;
+        window.scrollTo(0, sectionPosition);
     }
 }
