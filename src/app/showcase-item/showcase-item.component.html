@@ -1,3 +1,22 @@
-<div class="title-banner">
-    <h3>PLACEHOLDER TITLE</h3>
+<div class="card-container" (mouseenter)="onHover()" (mouseleave)="onMouseExit()">
+    <div class="title-banner" #titleBanner>
+        <h3>{{ project.getTitle() }}</h3>
+    </div>
+    <div class="background">
+        <img src="{{ project.getImageUrl() }}" alt="" #backgroundImage>
+    </div>
+    <div class="details-banner" #detailsBanner>
+        <div class="details-container">
+            <div class="description-container">
+                <p>{{ project.getDescription() }}</p>
+            </div>
+            <div class="buttons-container">
+                <a class="link-button" href="{{ project.getSource() }}">
+                    <div class="icon-circle">
+                        <img src="../../assets/code-icon.svg" alt="" #codeIcon>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>

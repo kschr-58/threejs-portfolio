@@ -12,9 +12,7 @@ export default class Logo extends PageComponent3D {
     }
 
     protected mapResources(): void {
-        this.mesh.scale.x *= .8;
-        this.mesh.scale.y *= .8;
-        this.mesh.scale.z *= .8;
+
 
         this.positionableObject = this.mesh;
     }
@@ -31,7 +29,7 @@ export default class Logo extends PageComponent3D {
         this.mesh.rotation.y = yRotation;
         this.mesh.rotation.z = zRotation;
     }
-
+    
     protected override addToScene(): void {
         this.experience.getScene().add(this.mesh);
 

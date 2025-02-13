@@ -31,6 +31,8 @@ export default class LogosCollection {
 
     // Values
     private hasAnimationPlayed = false;
+    private logoMaxScale = 1.1;
+    private logoMinScale = .7;
 
     constructor(
         experience: Experience, 
@@ -61,7 +63,12 @@ export default class LogosCollection {
                 this.hasAnimationPlayed = true;
                 this.enterAnimation();
             }
-        })
+        });
+
+        // Subscribe to resize event to scale logo spacing
+        experience.getSizeUtils().resizeEvent.subscribe(() => {
+            this.resize();
+        });
     }
 
     public tick(): void {
@@ -118,6 +125,8 @@ export default class LogosCollection {
 
             columnIndex++;
         }
+
+        this.resize();
     }
 
     private enterAnimation(): void {
@@ -133,6 +142,20 @@ export default class LogosCollection {
 
             gsap.from(mesh.position, {y: startingYPos, duration: this.logoBaseAnimationDuration + index * .1, ease: 'circ.inOut', delay: index * .2});
             index++;
+        }
+    }
+
+    private resize(): void {
+        // Resize scale based on new screen width
+        const sizeUtils = this.experience.getSizeUtils();
+        const defaultWidth = 1920; // Default full HD resolution used for scaling
+
+        let newScale = (sizeUtils.getWidth() / defaultWidth) * 1.2;
+        newScale = Math.min(newScale, this.logoMaxScale);
+        newScale = Math.max(newScale, this.logoMinScale);
+
+        for (const logoMesh of this.logoMeshes) {
+            logoMesh.scale.set(newScale, newScale, newScale);
         }
     }
 }

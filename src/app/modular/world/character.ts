@@ -382,9 +382,9 @@ export default class Character extends PageComponent3D {
         this.snapVFXSprite.visible = true;
 
         if (this.vfxTL['start']) {
-            console.log('Already exists');
             this.vfxTL.play('start');
         }
+        
         else this.vfxTL
         .add('start')
         .to(this.snapVFXSprite.position, { duration: this.snapVFXDuration, x: fingerPosition.x -= .01 , y: fingerPosition.y += .01 , ease: 'power4.out'}, 'start')

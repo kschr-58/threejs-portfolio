@@ -13,25 +13,30 @@ export class Source {
 }
 
 export const sourcesArray = [
-    new Source(
-        'perlin',
-        'texture',
-        'http://localhost:8080/textures/perlin.png',
-    ),
-    new Source(
-        'study',
-        'gltf',
-        'http://localhost:8080/Study_Baked.glb'
-    ),
-    new Source(
-        'monoboyTest',
-        'gltf',
-        'http://localhost:8080/SittingTest.glb'
-    ),
+    // new Source(
+    //     'perlin',
+    //     'texture',
+    //     'http://localhost:8080/textures/perlin.png',
+    // ),
+    // new Source(
+    //     'study',
+    //     'gltf',
+    //     'http://localhost:8080/Study_Baked.glb'
+    // ),
+    // new Source(
+    //     'monoboyTest',
+    //     'gltf',
+    //     'http://localhost:8080/SittingTest.glb'
+    // ),
     new Source(
         'character',
         'gltf',
         'http://localhost:8080/Character.glb'
+    ),
+    new Source(
+        'study-mono',
+        'gltf',
+        'http://localhost:8080/Study_Mono.glb'
     ),
     new Source(
         'logos',

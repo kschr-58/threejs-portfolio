@@ -4,8 +4,6 @@
 <div class="section-container bottom-section">
     <h2>PREVIOUS WORK</h2>
     <div class="showcase">
-        <app-showcase-item></app-showcase-item>
-        <app-showcase-item></app-showcase-item>
-        <app-showcase-item></app-showcase-item>
+        <app-showcase-item *ngFor="let project of projects" [project]="project"></app-showcase-item>
     </div>
 </div>

@@ -10,7 +10,7 @@ import { HomeComponent } from './home/home.component';
 import { SkillsComponent } from './skills/skills.component';
 import { ShowcaseItemComponent } from './showcase-item/showcase-item.component';
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
-import { RealisticComponent } from './realistic/realistic.component';
+import { ContactComponent } from './contact/contact.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +22,7 @@ import { RealisticComponent } from './realistic/realistic.component';
     SkillsComponent,
     ShowcaseItemComponent,
     LoadingOverlayComponent,
+    ContactComponent
   ],
   imports: [
     BrowserModule,

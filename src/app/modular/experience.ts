@@ -33,7 +33,7 @@ export class Experience { //TODO migrate to modular component
     private scene!: THREE.Scene;
 
     // Materials & colors
-    private lightThemeColor = new THREE.Color(0xf2f0ef);
+    private lightThemeColor = new THREE.Color(0xF1F2F4);
     private darkThemeColor = new THREE.Color(0x1c1c1c);
     private basicThemeMaterial!: THREE.MeshBasicMaterial;
 

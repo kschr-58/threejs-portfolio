@@ -1,19 +1,131 @@
-:host {
-    width: 20%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-direction: row;
+@import '../../style/index.scss';
 
-    background-color: rgba(0, 0, 0, .3);
-    border-radius: 3%;
+:host {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+}
+
+.card-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
 }
 
 .title-banner {
+    position: absolute;
+    height: 20%;
     width: 100%;
+    top: 40%;
+
     display: flex;
     justify-content: center;
     align-items: center;
 
-    background-color: rgba(0, 0, 0, .3);
+    background-color: rgba($color: #000000, $alpha: .75);
+
+    h3 {
+        margin: 0;
+
+        color: $text-color-dark;
+    }
+}
+
+.background {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        object-fit: cover;
+        transform-origin: center;
+
+        opacity: 60%;
+    }
+}
+
+.details-banner {
+    position: absolute;
+    height: 0%;
+    width: 100%;
+    align-self: flex-end;
+
+    overflow: hidden;
+    
+    background-color: rgba($color: #000000, $alpha: .75);
+    border-radius: 0 0 10px 10px;
+
+    .details-container {
+        width: 100%;
+        height: 100%;
+        padding: 20px 5%;
+        box-sizing: border-box;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .description-container {
+        width: 100%;
+
+        overflow-y: auto;
+
+        p {
+            margin: 0;
+        }
+    }
+
+    .buttons-container {
+        width: 100%;
+
+        display: flex;
+        justify-content: center;
+    }
+
+    .link-button {
+        position: relative;
+        width: 50px;
+        height: 50px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .icon-circle {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            z-index: 1;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            border: 2px solid $primary-color-dark;
+
+            background-color: black;
+
+            img {
+                width: 70%;
+                height: 70%;
+            }
+        }
+    }
 }
