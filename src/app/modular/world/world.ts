@@ -35,12 +35,13 @@ export default class World {
         if (this.monoboy != undefined) this.monoboy.tick();
         if (this.character != undefined) this.character.tick();
         if (this.logos != undefined) this.logos.tick();
+        if (this.studyMono != undefined) this.studyMono.tick();
     }
 
     private onResourcesLoad(): void {
         this.character = new Character(this.experience, 0, 75, 100.5, -.5);
         this.foregroundPlane = new ForegroundPlane(this.experience, 1, 50, 50, 0.07);
         this.logos = new LogosCollection(this.experience, 1, 7.5, 25, .15, 9, 7, 10);
-        this.studyMono = new StudyMono(this.experience, 2, 50, 70, -.5);
+        this.studyMono = new StudyMono(this.experience, 2, 75, 75, -.5);
     }
 }

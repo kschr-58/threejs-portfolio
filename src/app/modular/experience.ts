@@ -35,7 +35,13 @@ export class Experience { //TODO migrate to modular component
     // Materials & colors
     private lightThemeColor = new THREE.Color(0xF1F2F4);
     private darkThemeColor = new THREE.Color(0x1c1c1c);
+    private lightThemeMeshColor = new THREE.Color(0xffffff);
+    private darkThemeMeshColor = new THREE.Color(0x292929);
+    private lightThemeOutlineColor = new THREE.Color(0x000000);
+    private darkThemeOutlineColor = new THREE.Color(0xffffff);
     private basicThemeMaterial!: THREE.MeshBasicMaterial;
+    private meshMonoMaterial = new THREE.MeshBasicMaterial({color: 'white', toneMapped: false});
+    private meshOutlineMaterial = new THREE.MeshBasicMaterial({color: 'black', toneMapped: false});
 
     // Debugging
     private debugMaterialRed = new THREE.MeshBasicMaterial({color: 'red', wireframe: true, visible: false});
@@ -87,8 +93,10 @@ export class Experience { //TODO migrate to modular component
         });
 
         ThemeService.getInstance().themeChangeEvent.subscribe(darkThemeEnabled => {
-            this.basicThemeMaterial.color = darkThemeEnabled ? this.darkThemeColor : this.lightThemeColor;
+            this.setThemeMaterials(darkThemeEnabled);
         });
+
+        this.setThemeMaterials(ThemeService.getInstance().isDarkThemeEnabled());
 
         window.experience = this;
 
@@ -138,6 +146,14 @@ export class Experience { //TODO migrate to modular component
 
     public getDebugMaterialCyan(): THREE.MeshBasicMaterial {
         return this.debugMaterialCyan;
+    }
+
+    public getOutlineMaterial(): THREE.MeshBasicMaterial {
+        return this.meshOutlineMaterial;
+    }
+    
+    public getMeshMonoMaterial(): THREE.MeshBasicMaterial {
+        return this.meshMonoMaterial;
     }
 
     public destroy(): void {
@@ -197,5 +213,11 @@ export class Experience { //TODO migrate to modular component
 
         sceneFolder.add(this.debugObject, 'toggleDarkTheme').name('Toggle dark theme');
         sceneFolder.add(this.debugObject, 'queueThemeSwitch').name('Queue theme switch');
+    }
+
+    private setThemeMaterials(darkThemeEnabled: boolean): void {
+        this.basicThemeMaterial.color = darkThemeEnabled ? this.darkThemeColor : this.lightThemeColor;
+        this.meshMonoMaterial.color = darkThemeEnabled ? this.darkThemeMeshColor : this.lightThemeMeshColor;
+        this.meshOutlineMaterial.color = darkThemeEnabled ? this.darkThemeOutlineColor : this.lightThemeOutlineColor;
     }
 }

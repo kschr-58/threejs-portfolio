@@ -9,17 +9,18 @@ import { ScrollService } from './services/scroll.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  @HostBinding('class.dark-theme') public isDarkTheme: boolean;
   public homeComponent = HomeComponent;
 
   constructor(
     private themeService: ThemeService,
     private scrollService: ScrollService
   ) {
-    this.isDarkTheme = themeService.isDarkThemeEnabled();
+    const darkThemeEnabled = themeService.isDarkThemeEnabled();
+
+    document.documentElement.className = darkThemeEnabled ? 'theme-dark' : 'theme-light';
 
     themeService.themeChangeEvent.subscribe(enabled => {
-      this.isDarkTheme = enabled;
+      document.documentElement.className = enabled ? 'theme-dark' : 'theme-light';
     });
   }
 }

@@ -30,7 +30,7 @@
     h3 {
         margin: 0;
 
-        color: $text-color-dark;
+        color: var(--text-color-light);
     }
 }
 
@@ -89,6 +89,8 @@
 
         p {
             margin: 0;
+
+            color: var(--text-color-light);
         }
     }
 
@@ -118,9 +120,9 @@
             justify-content: center;
             align-items: center;
             border-radius: 50%;
-            border: 2px solid $primary-color-dark;
+            border: 2px solid var(--primary-color);
 
-            background-color: black;
+            background-color: var(--tertiary-color);
 
             img {
                 width: 70%;

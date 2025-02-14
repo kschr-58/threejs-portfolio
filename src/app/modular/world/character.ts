@@ -130,6 +130,8 @@ export default class Character extends PageComponent3D {
     }
     
     private mapCharacterComponents(): void {
+        this.outlineMaterial = this.experience.getOutlineMaterial();
+        
         this.sceneGroup.traverse(node => {
             if (node instanceof THREE.Object3D && node.name == 'Scene') {
                 this.positionableObject = node;
@@ -152,10 +154,8 @@ export default class Character extends PageComponent3D {
                     node.material.toneMapped = false;
                     this.defaultTexture = texture;
                 } else if (node.material.name == 'Outline_Black') {
-                    node.material = new THREE.MeshBasicMaterial({color: 'black'});
+                    node.material = this.outlineMaterial;
                     node.material.toneMapped = false;
-
-                    this.outlineMaterial = node.material;
                 }
             } else if (node instanceof THREE.Bone) {
                 if (node.name == "DEF-spine006") {
@@ -256,7 +256,6 @@ export default class Character extends PageComponent3D {
 
     private setThemeMaterials(darkThemeEnabled: boolean) {
         this.textureMaterial.map = darkThemeEnabled ? this.invertedTexture : this.defaultTexture;
-        this.outlineMaterial.color = new THREE.Color(darkThemeEnabled ? 'white' : 'black');
     }
 
     // #endregion

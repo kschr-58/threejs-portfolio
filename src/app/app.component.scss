@@ -8,9 +8,5 @@
     height: max-content;
     width: 100%;
 
-    background-color: $primary-color;
-
-    &.dark-theme {
-        background-color: $primary-color-dark;
-    }
+    background-color: var(--primary-color);
 }

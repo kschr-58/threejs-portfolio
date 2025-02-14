@@ -1,6 +1,91 @@
+@import '../../style/index.scss';
+
 :host {
     width: 100%;
     height: 100vh;
 
+    padding: $header-banner-size 5%;
+    box-sizing: border-box;
+
     display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+h2 {
+    font-size: $page-header-text-size;
+    justify-self: flex-start;
+}
+
+.contact-window-container {
+    position: relative;
+    height: 60%;
+    width: 35%;
+    display: flex;
+    flex-direction: column;
+    gap: 5%;
+    padding: 2%;
+    box-sizing: border-box;
+
+    background: var(--window-background-color);
+    border-radius: 15px;
+    overflow: hidden;
+
+    .input-section {
+        display: flex;
+        flex-direction: column;
+
+        &#message-section {
+            height: 40%;
+            flex-grow: 2;
+            display: flex;
+            flex-direction: column;
+
+            #message-input {
+                flex-grow: 3;
+            }
+        }
+    }
+
+    label, button {
+        font-size: 1.5rem;
+        color: var(--text-color);
+    }
+
+    textarea, button {
+        background: var(--primary-color);
+        border: none;
+        border-radius: 5px;
+    }
+
+    textarea {
+        resize: none;
+        color: var(--text-color);
+        padding: 5px;
+        box-sizing: border-box;
+        font-size: 1.5rem;
+    }
+
+    button {
+        width: 30%;
+        padding: 5px 0;
+        align-self: flex-end;
+    }
+
+    .under-construction-banner {
+        position: absolute;
+        top: 40%;
+        left: -30%;
+        width: 150%;
+        height: 20%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        background-color: rgb(179, 179, 58);
+        border: 3px solid black;
+        box-sizing: border-box;
+        opacity: 50%;
+        transform: rotateZ(45deg);
+    }
 }

@@ -1,5 +1,17 @@
-$primary-color: #ffffff;
-$primary-color-dark: #292929;
-$header-color: #121212;
-$text-color: #121212;
-$text-color-dark: #ffffff;
+.theme-light {
+    --primary-color: #ffffff;
+    --secondary-color: #121212;
+    --tertiary-color: #282828;
+    --text-color: #121212;
+    --text-color-light: #ffffff;
+    --window-background-color: #F1F2F4;
+}
+
+.theme-dark {
+    --primary-color: #292929;
+    --secondary-color: #121212;
+    --tertiary-color: #000000;
+    --text-color: #ffffff;
+    --text-color-light: #ffffff;
+    --window-background-color: #1c1c1c;
+}
