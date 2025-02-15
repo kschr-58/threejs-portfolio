@@ -13,13 +13,13 @@
     border-radius: 15%;
 
     background-color: var(--tertiary-color);
-    background-image: url('../../assets/contrast-icon.svg');
+    background-image: url('../../../assets/contrast-icon.svg');
     background-position: center;
     background-size: 80%;
     background-repeat: no-repeat;
 
     &.inverted {
-        background-image: url('../../assets/contrast-icon-inverted.svg');
+        background-image: url('../../../assets/contrast-icon-inverted.svg');
     }
 
     &:hover {
@@ -33,6 +33,6 @@
         height: 0;
         overflow: hidden;
     
-        content: url('../../assets/contrast-icon.svg') url('../../assets/contrast-icon-inverted.svg');
+        content: url('../../../assets/contrast-icon.svg') url('../../../assets/contrast-icon-inverted.svg');
     }
 }
