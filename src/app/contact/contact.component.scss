@@ -21,15 +21,20 @@ h2 {
     position: relative;
     height: 60%;
     width: 35%;
-    display: flex;
-    flex-direction: column;
-    gap: 5%;
     padding: 2%;
     box-sizing: border-box;
 
     background: var(--window-background-color);
     border-radius: 15px;
     overflow: hidden;
+
+    form {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 5%;
+    }
 
     .input-section {
         display: flex;
@@ -70,6 +75,12 @@ h2 {
         width: 30%;
         padding: 5px 0;
         align-self: flex-end;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: 50%;
+            cursor: none;
+        }
     }
 
     .under-construction-banner {
@@ -88,4 +99,12 @@ h2 {
         opacity: 50%;
         transform: rotateZ(45deg);
     }
+}
+
+.notification-text {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

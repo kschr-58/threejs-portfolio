@@ -11,6 +11,8 @@ import { SkillsComponent } from './skills/skills.component';
 import { ShowcaseItemComponent } from './showcase-item/showcase-item.component';
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
 import { ContactComponent } from './contact/contact.component';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -26,9 +28,10 @@ import { ContactComponent } from './contact/contact.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule,
   ],
-  providers: [],
+  providers: [provideHttpClient(withInterceptorsFromDi())],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

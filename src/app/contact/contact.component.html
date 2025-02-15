@@ -1,21 +1,24 @@
 <h2>Contact me</h2>
 <div class="contact-window-container">
-    <div class="input-section">
-        <label for="name">Name</label>
-        <textarea name="name" id=""></textarea>
-    </div>
-    <div class="input-section">
-        <label for="email">Email</label>
-        <textarea name="email" id=""></textarea> 
-    </div>
-    <div class="input-section" id="message-section">
-        <label for="message">Message</label>
-        <textarea name="message" id="message-input"></textarea>
-    </div>
-    <button>
-        Send
-    </button>
-    <div class="under-construction-banner">
-        <h2>UNDER CONSTRUCTION</h2>
+    <form #messageForm="ngForm" *ngIf="!messageSent">
+        <div class="input-section">
+            <label for="name">Name</label>
+            <textarea name="name" ngModel required></textarea>
+        </div>
+        <div class="input-section">
+            <label for="email">Email</label>
+            <textarea name="email" ngModel required email autocomplete="email"></textarea> 
+        </div>
+        <div class="input-section" id="message-section">
+            <label for="message">Message</label>
+            <textarea id="message-input" name="message" ngModel required></textarea>
+        </div>
+        <button type="submit" (click)="onSendMessage(messageForm)" [disabled]="!messageForm.valid">
+            Send
+        </button>
+    </form>
+    <div class="notification-text" *ngIf="messageSent">
+        <h3 *ngIf="!notificationMessage">Message sending...</h3>
+        <h3 *ngIf="notificationMessage">{{ notificationMessage }}</h3>
     </div>
 </div>

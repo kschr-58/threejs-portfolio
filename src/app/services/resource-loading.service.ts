@@ -1,8 +1,8 @@
 import { CubeTexture, CubeTextureLoader, LoadingManager, NearestFilter, Texture, TextureLoader } from "three";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { Source } from "../modular/sources";
 import { Subject } from "rxjs";
 import { Injectable } from "@angular/core";
+import Source from "src/models/source";
 
 @Injectable({
     providedIn: 'root'
