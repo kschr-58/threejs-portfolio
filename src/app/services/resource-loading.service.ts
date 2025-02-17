@@ -22,6 +22,7 @@ export default class ResourceLoadingService {
     private cubeTextureLoader!: CubeTextureLoader;
 
     // Events
+    public loadingStartedEvent = new Subject<void>();
     public loadingFinishedEvent = new Subject<boolean>();
     public loadingProgressEvent = new Subject<number>();
 
@@ -41,6 +42,8 @@ export default class ResourceLoadingService {
     }
 
     public loadResources(sources: Source[]): void {
+        this.loadingStartedEvent.next();
+
         for (const source of sources) {
             if (source.type == 'gltf') {
                 if (source.path == undefined) throw new Error('Source does not contain path');

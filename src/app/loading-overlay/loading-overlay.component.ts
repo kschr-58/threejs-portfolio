@@ -8,21 +8,26 @@ import gsap from 'gsap';
   styleUrl: './loading-overlay.component.scss'
 })
 export class LoadingOverlayComponent {
-  public progressPercentage: number;
-  private isLoading: boolean;
+  public progressPercentage: number = 0;
+  public isLoading: boolean = false;
 
   constructor() {
-    this.progressPercentage = 0;
-    this.isLoading = true;
-
-    document.body.classList.add('no-scroll');
 
     // Subscribe to resource loading events
+    ResourceLoadingService.getInstance().loadingStartedEvent.subscribe(() => {
+      this.isLoading = true;
+      this.progressPercentage = 0;
+      document.body.classList.add('no-scroll');
+    });
+
     ResourceLoadingService.getInstance().loadingFinishedEvent.subscribe(() => {
       const overlay = document.getElementById('overlay-container');
       if (overlay == undefined) return;
 
-      gsap.to(overlay, {autoAlpha: 0, duration: 1});
+      gsap.to(overlay, {autoAlpha: 0, duration: 1})
+      .then(() => {
+        this.isLoading = false;
+      });
       
       document.body.classList.remove('no-scroll');
     });
