@@ -1,8 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Experience } from './experience';
-import { ThemeService } from '../services/theme.service';
-import { ScrollService } from '../services/scroll.service';
-import ResourceLoadingService from '../services/resource-loading.service';
 
 @Component({
   selector: 'app-modular',
@@ -14,11 +11,7 @@ export class ModularComponent implements OnInit {
 
   private experience!: Experience;
 
-  constructor(
-    private resourceLoadingService: ResourceLoadingService,
-    private themeService: ThemeService,
-    private scrollService: ScrollService
-  ) { }
+  constructor() { }
 
   public ngOnInit(): void {
     const canvasElement = document.getElementById('main_canvas');

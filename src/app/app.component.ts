@@ -2,6 +2,7 @@ import { Component, HostBinding } from '@angular/core';
 import { HomeComponent } from './home/home.component';
 import { ThemeService } from 'src/app/services/theme.service';
 import { ScrollService } from './services/scroll.service';
+import ResourceLoadingService from './services/resource-loading.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,8 @@ export class AppComponent {
 
   constructor(
     private themeService: ThemeService,
-    private scrollService: ScrollService
+    private scrollService: ScrollService,
+    private resourceLoadingService: ResourceLoadingService
   ) {
     const darkThemeEnabled = themeService.isDarkThemeEnabled();
 

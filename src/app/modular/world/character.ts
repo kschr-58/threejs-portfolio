@@ -64,6 +64,8 @@ export default class Character extends PageComponent3D {
     private themeTransitionInProgress = false;
     private snapVFXParticleScale = .08;
     private snapVFXDuration = .25;
+    private isDocumentVisible = true;
+    private deltaTimeNormalizationRequired = false;
 
     // Debugging
     private debugObject: {[k: string]: any} = {};
@@ -90,6 +92,14 @@ export default class Character extends PageComponent3D {
         });
         scrollService.newSectionEvent.subscribe(newSection => {
             themeService.overrideThemeBehaviour(newSection == page);
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            const isVisible = document.visibilityState == 'visible' ? true : false;
+
+            if (this.isDocumentVisible != isVisible) this.deltaTimeNormalizationRequired = true;
+
+            this.isDocumentVisible = isVisible;
         });
 
         if (scrollService.getSection() == page) themeService.overrideThemeBehaviour(true);
@@ -207,12 +217,18 @@ export default class Character extends PageComponent3D {
     // #region Lifecycle
 
     public tick() {
-        const animationDeltaSpeed = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
+        let deltaTime = this.experience.getTimeUtils().getDeltaTime();
+
+        if (this.deltaTimeNormalizationRequired) {
+            deltaTime = .016; // Default to 60 fps for normalization
+            this.deltaTimeNormalizationRequired = false;
+        }
+
+        const animationDeltaSpeed = deltaTime * this.animationSpeed;
 
         this.animationMixer.update(animationDeltaSpeed);
+        this.handleHeadRotation(animationDeltaSpeed);
         this.cursorRaycast();
-
-        this.handleHeadRotation();
 
         // Handle queued actions
         this.handleAnimationQueue();
@@ -220,8 +236,7 @@ export default class Character extends PageComponent3D {
 
     }
 
-    private handleHeadRotation(): void {
-        const animationDeltaSpeed = this.experience.getTimeUtils().getDeltaTime() * this.animationSpeed;
+    private handleHeadRotation(animationDeltaSpeed: number): void {
 
         // Smooth headbone rotation towards mouse position or back to default position
         if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, animationDeltaSpeed * this.headRotationSpeed);

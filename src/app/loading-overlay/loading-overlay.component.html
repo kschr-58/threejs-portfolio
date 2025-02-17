@@ -1,3 +1,4 @@
-<div id="overlay-container">
-    <h3>{{ progressPercentage }}</h3>
+<div id="overlay-container" *ngIf="isLoading">
+    <h3>Loading assets, please wait a moment</h3>
+    <h3>{{ progressPercentage }}%</h3>
 </div>
