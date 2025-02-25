@@ -1,5 +1,6 @@
 import { CineonToneMapping, LinearSRGBColorSpace, PCFShadowMap, WebGLRenderer } from "three";
 import { Experience } from "./experience";
+import { SizesService } from "../services/sizes.service";
 
 export class RendererManager {
     private experience: Experience;
@@ -14,7 +15,7 @@ export class RendererManager {
     }
 
     public resize(): void {
-        const sizes = this.experience.getSizeUtils();
+        const sizes = SizesService.getInstance();
 
         this.renderer.setSize(sizes.getWidth(), sizes.getHeight());
         this.renderer.setPixelRatio(sizes.getPixelRatio());
@@ -33,7 +34,7 @@ export class RendererManager {
 
     private initializeRendrerer(): void {
         const canvas = this.experience.getCanvas();
-        const sizes = this.experience.getSizeUtils();
+        const sizes = SizesService.getInstance();
 
         this.renderer = new WebGLRenderer({
             canvas: canvas,

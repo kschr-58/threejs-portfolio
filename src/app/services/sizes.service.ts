@@ -1,7 +1,12 @@
-import { EventEmitter } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { Subject } from "rxjs";
 
-export default class SizeUtils {
+@Injectable({
+    providedIn: 'root'
+})
+export class SizesService {
+    private static INSTANCE: SizesService;
+
     private width!: number;
     private height!: number;
     private pixelRatio!: number;
@@ -10,14 +15,21 @@ export default class SizeUtils {
     public resizeEvent = new Subject<void>();
 
     constructor() {
-        this.recalculateSizes();
-        
+        if (!SizesService.INSTANCE) SizesService.INSTANCE = this;
+        else Error('Trying to re-instantiate sizes service');
+
         window.addEventListener('resize', () => {
             this.recalculateSizes();
 
             // Fire resize event
             this.resizeEvent.next();
         });
+
+        this.recalculateSizes();
+    }
+
+    public static getInstance(): SizesService {
+        return this.INSTANCE;
     }
 
     public getWidth(): number {

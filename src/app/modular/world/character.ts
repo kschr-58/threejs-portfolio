@@ -6,6 +6,7 @@ import { ThemeService } from "src/app/services/theme.service";
 import PageComponent3D from "./page-component-3d";
 import { ScrollService } from "src/app/services/scroll.service";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
+import RaycastObject from "src/models/raycast-object";
 
 export default class Character extends PageComponent3D {
     // Resources
@@ -49,7 +50,6 @@ export default class Character extends PageComponent3D {
 
     // Positions and rotations
     private headWorldPosition = new THREE.Vector3();
-    private mousePosition: THREE.Vector2 = new THREE.Vector2;
     private defaultRotation: THREE.Quaternion = new THREE.Quaternion;
     private raycastPlaneOffset = new THREE.Vector3(-.05, .35, .5);
 
@@ -228,7 +228,6 @@ export default class Character extends PageComponent3D {
 
         this.animationMixer.update(animationDeltaSpeed);
         this.handleHeadRotation(animationDeltaSpeed);
-        this.cursorRaycast();
 
         // Handle queued actions
         this.handleAnimationQueue();
@@ -434,52 +433,34 @@ export default class Character extends PageComponent3D {
         this.positionableObject.add(this.raycastPlane);
 
         this.raycastPlane.updateMatrixWorld();
+
+        const onHoverFunction = (intersection: THREE.Intersection) => this.enableHeadTracking(intersection);
+        const onCursorExitFunction = () => this.disableHeadTracking();
+
+        // Create raycastobject and add to raycast utils
+        const raycastObject = new RaycastObject(this.raycastPlane, onHoverFunction, onCursorExitFunction);
+        
+        this.experience.getRaycastUtils().addRaycastObject(raycastObject);
     }
 
-    private cursorRaycast(): void {
-        // Get mouseposition
-        const windowWidth = this.experience.getSizeUtils().getWidth();
-        const windowHeight = this.experience.getSizeUtils().getHeight();
-        const mousePos = this.experience.getCursorUtils().getCursorPosition();
+    private enableHeadTracking(intersection: THREE.Intersection): void {
+        // Rotate head rotation object
+        const contactPoint = intersection.point;
 
-        this.mousePosition.x = mousePos.x / windowWidth * 2 - 1;
-        this.mousePosition.y = (mousePos.y / windowHeight * 2 - 1) * - 1;
+        this.headTrackingPointObject.position.x = contactPoint.x;
+        this.headTrackingPointObject.position.y = contactPoint.y;
+        this.headTrackingPointObject.position.z = contactPoint.z;
+    
+        this.headRotationObject.lookAt(this.headTrackingPointObject.position);
+        this.headRotationEnabled = true;
 
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(this.mousePosition, this.experience.getCameraManager().getCamera());
+        return;
+    }
 
-        const intersects = raycaster.intersectObjects([this.raycastPlane, this.headRotationObject]);
-        if (intersects.length > 0) {
-            // Check if intersect with raycast plane exists
-            const headTrackingPlaneIntersection = intersects.find(
-                intersect => intersect.object == this.raycastPlane
-            );
-
-            // Rotate head rotation object
-            if (headTrackingPlaneIntersection) {
-                const contactPoint = headTrackingPlaneIntersection.point;
-
-                this.headTrackingPointObject.position.x = contactPoint.x;
-                this.headTrackingPointObject.position.y = contactPoint.y;
-                this.headTrackingPointObject.position.z = contactPoint.z;
-            
-                this.headRotationObject.lookAt(this.headTrackingPointObject.position);
-                this.headRotationEnabled = true;
-            }
-
-            // Check for interactable objects being intersected
-            // const headBoneIntersection = intersects.find(
-            //     intersect => intersect.object == this.headRotationObject
-            // );
-
-            // if (headBoneIntersection) this.currentInteractionObject = headBoneIntersection;
-            // else this.currentInteractionObject = null;
-
-            return;
-        }
-
+    private disableHeadTracking(): void {
         this.headRotationEnabled = false;
     }
+
     // #endregion
 
     // #region Debugging

@@ -2,6 +2,7 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
 import * as THREE from 'three';
 import ResourceLoadingService from "src/app/services/resource-loading.service";
+import { SizesService } from "src/app/services/sizes.service";
 
 export default class MonoboyTest {
     private experience: Experience;
@@ -137,9 +138,9 @@ export default class MonoboyTest {
 
     private cursorRaycast(): void {
         // Get mouseposition
-        const windowWidth = this.experience.getSizeUtils().getWidth();
-        const windowHeight = this.experience.getSizeUtils().getHeight();
-        const mousePos = this.experience.getCursorUtils().getCursorPosition();
+        const windowWidth = SizesService.getInstance().getWidth();
+        const windowHeight = SizesService.getInstance().getHeight();
+        const mousePos = this.experience.getRaycastUtils().getCursorPosition();
 
         this.mousePosition.x = mousePos.x / windowWidth * 2 - 1;
         this.mousePosition.y = (mousePos.y / windowHeight * 2 - 1) * - 1;

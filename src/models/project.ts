@@ -1,9 +1,9 @@
 export default class Project {
-    private id: string;
-    private title: string;
-    private description: string;
-    private sourceUrl: string;
-    private imageUrl: string;
+    public id: string;
+    public title: string;
+    public description: string;
+    public sourceUrl: string;
+    public imageUrl: string;
 
     constructor(
         id: string,
@@ -17,21 +17,5 @@ export default class Project {
         this.description = description;
         this.sourceUrl = sourceUrl;
         this.imageUrl = imageUrl;
-    }
-
-    public getTitle(): string {
-        return this.title;
-    }
-
-    public getDescription(): string {
-        return this.description;
-    }
-
-    public getSource(): string {
-        return this.sourceUrl;
-    }
-
-    public getImageUrl(): string {
-        return this.imageUrl;
     }
 }

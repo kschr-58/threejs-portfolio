@@ -124,9 +124,9 @@ export default class BakedCharacter {
 
     private cursorRaycast(): void {
         // Get mouseposition
-        const windowWidth = this.experience.getSizeUtils().getWidth();
-        const windowHeight = this.experience.getSizeUtils().getHeight();
-        const mousePos = this.experience.getCursorUtils().getCursorPosition();
+        const windowWidth = this.SizesService.getInstance().getWidth();
+        const windowHeight = this.SizesService.getInstance().getHeight();
+        const mousePos = this.experience.getRaycastUtils().getCursorPosition();
 
         this.mousePosition.x = mousePos.x / windowWidth * 2 - 1;
         this.mousePosition.y = (mousePos.y / windowHeight * 2 - 1) * - 1;

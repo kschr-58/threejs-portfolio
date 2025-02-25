@@ -1,14 +1,14 @@
 import * as THREE from 'three';
-import SizeUtils from './utils/size-utils';
 import TimeUtils from './utils/time-utils';
 import CameraManager from './cameraManager';
 import { RendererManager } from './rendererManager';
 import World from './world/world';
 import DebugManager from './utils/debug-manager';
-import CursorUtils from './utils/cursor-utils';
+import RaycastUtils from './utils/raycast-utils';
 import { ThemeService } from '../services/theme.service';
 import ResourceLoadingService from '../services/resource-loading.service';
 import { sourcesArray } from 'src/app/modular/sources';
+import { SizesService } from '../services/sizes.service';
 
 let instance: Experience | null = null;
 
@@ -19,9 +19,8 @@ declare global {
 export class Experience { //TODO migrate to modular component 
     // Utils objects
     private canvas!: HTMLCanvasElement;
-    private sizeUtils!: SizeUtils;
     private timeUtils!: TimeUtils;
-    private cursorUtils!: CursorUtils;
+    private raycastUtils!: RaycastUtils;
     private cameraManager!: CameraManager;
     private rendererManager!: RendererManager;
     private debugManager!: DebugManager;
@@ -62,18 +61,17 @@ export class Experience { //TODO migrate to modular component
         // Load resources
         ResourceLoadingService.getInstance().loadResources(sourcesArray);
 
-        // Utility objects
-        this.sizeUtils = new SizeUtils();
-        this.timeUtils = new TimeUtils();
-        this.cursorUtils = new CursorUtils();
-        this.debugManager = new DebugManager();
-
         // ThreeJS objects
         this.scene = new THREE.Scene();
 
         // Manager objects
+        this.debugManager = new DebugManager();
         this.cameraManager = new CameraManager(this);
         this.rendererManager = new RendererManager(this);
+
+        // Utility objects
+        this.timeUtils = new TimeUtils();
+        this.raycastUtils = new RaycastUtils(this.cameraManager);
 
         // World
         this.world = new World(this);
@@ -84,7 +82,7 @@ export class Experience { //TODO migrate to modular component
         this.basicThemeMaterial.toneMapped = false;
 
         // Subscribe to events
-        this.sizeUtils.resizeEvent.subscribe(() => {
+        SizesService.getInstance().resizeEvent.subscribe(() => {
             this.resize();
         });
 
@@ -104,16 +102,12 @@ export class Experience { //TODO migrate to modular component
         if (debugEnabled) this.setDebugSettings();
     }
 
-    public getSizeUtils(): SizeUtils {
-        return this.sizeUtils;
-    }
-
     public getTimeUtils(): TimeUtils {
         return this.timeUtils;
     }
 
-    public getCursorUtils(): CursorUtils {
-        return this.cursorUtils;
+    public getRaycastUtils(): RaycastUtils {
+        return this.raycastUtils;
     }
 
     public getCanvas(): HTMLCanvasElement {
@@ -157,7 +151,8 @@ export class Experience { //TODO migrate to modular component
     }
 
     public destroy(): void {
-        this.sizeUtils.resizeEvent.unsubscribe();
+        // Unsubscrive from events
+        SizesService.getInstance().resizeEvent.unsubscribe();
         this.timeUtils.tickEvent.unsubscribe();
 
         this.scene.traverse(child => {
@@ -191,6 +186,7 @@ export class Experience { //TODO migrate to modular component
         this.cameraManager.tick();
         this.world.tick();
         this.rendererManager.tick();
+        this.raycastUtils.tick();
 
         if (this.debugManager.isDebugModeEnabled()) this.debugManager.tick();
     }
@@ -198,8 +194,6 @@ export class Experience { //TODO migrate to modular component
     private setDebugSettings(): void {
         const gui = this.debugManager.getGUI();
         this.debugMaterialCyan.visible = this.debugMaterialRed.visible = true;
-
-        this.basicThemeMaterial.copy(this.debugMaterialCyan);
 
         const sceneFolder = gui.addFolder('Scene');
 

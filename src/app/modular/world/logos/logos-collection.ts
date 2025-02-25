@@ -1,10 +1,13 @@
-import { Group, Material, Mesh, MeshBasicMaterial, OrthographicCamera, SRGBColorSpace, Texture, Vector3 } from "three";
+import { Group, Mesh, ShaderMaterial, Texture, Vector3 } from "three";
 import { Experience } from "../../experience";
 import Logo from "./logo";
-import gsap from "gsap";
 import { ScrollService } from "src/app/services/scroll.service";
 import LogosForegroundPlane from "./logos-foreground-plane";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
+import gsap from 'gsap';
+import vertexShader from "../../shaders/logos/vertex.glsl";
+import fragmentShader from "../../shaders/logos/fragment.glsl";
+import { SizesService } from "src/app/services/sizes.service";
 
 export default class LogosCollection {
     private logos = new Map<string, Logo>();
@@ -12,7 +15,7 @@ export default class LogosCollection {
     // ThreeJS components
     private experience: Experience;
     private sceneGroup!: Group;
-    private material!: Material;
+    private material!: ShaderMaterial;
     private logosTexture!: Texture;
     private foregroundPlane!: LogosForegroundPlane;
     private logoMeshes: Mesh[] = [];
@@ -31,8 +34,11 @@ export default class LogosCollection {
 
     // Values
     private hasAnimationPlayed = false;
-    private logoMaxScale = 1.1;
-    private logoMinScale = .7;
+    private logoMaxScale = .1;
+    private logoMinScale = .05;
+
+    // Debugging
+    private debugObject: {[k: string]: any} = {};
 
     constructor(
         experience: Experience, 
@@ -66,7 +72,7 @@ export default class LogosCollection {
         });
 
         // Subscribe to resize event to scale logo spacing
-        experience.getSizeUtils().resizeEvent.subscribe(() => {
+        SizesService.getInstance().resizeEvent.subscribe(() => {
             this.resize();
         });
     }
@@ -85,16 +91,38 @@ export default class LogosCollection {
 
         if (gltf == undefined || textureResource == undefined) throw new Error('Cannot load logos resources');
 
-        textureResource.colorSpace = SRGBColorSpace;
         this.logosTexture = textureResource;
 
-        this.material = new MeshBasicMaterial({map: textureResource});
-        this.material.toneMapped = false;
+        this.material = new ShaderMaterial({
+            toneMapped: false,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            uniforms: {
+                uMeshSize: { value: 1.1 },
+                uTextureCoverage: { value: 0.0 },
+                uRingSize: { value: 0.05 },
+                uRingColor: { value: new Vector3(0.5, 0.0, 1.0) },
+                uTexture: { value: this.logosTexture },
+            }
+        });
 
         this.sceneGroup = gltf.scene;
         this.sceneGroup.traverse(node => {
             if (node instanceof Mesh) {
-                node.material = this.material;
+                const mat = new ShaderMaterial({
+                    toneMapped: false,
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader,
+                    uniforms: {
+                        uMeshSize: { value: 1.1 },
+                        uTextureCoverage: { value: 0.0 },
+                        uRingSize: { value: 0.05 },
+                        uRingColor: { value: new Vector3(0.5, 0.0, 1.0) },
+                        uTexture: { value: this.logosTexture },
+                    }
+                });
+
+                node.material = mat;
                 this.logoMeshes.push(node);
                 this.material.visible = false;
             }
@@ -127,6 +155,7 @@ export default class LogosCollection {
         }
 
         this.resize();
+        
     }
 
     private enterAnimation(): void {
@@ -147,11 +176,11 @@ export default class LogosCollection {
 
     private resize(): void {
         // Resize scale based on new screen width
-        const sizeUtils = this.experience.getSizeUtils();
+        const sizeUtils = SizesService.getInstance();
         const defaultWidth = 1920; // Default full HD resolution used for scaling
 
-        let newScale = (sizeUtils.getWidth() / defaultWidth) * 1.2;
-        newScale = Math.min(newScale, this.logoMaxScale);
+        let newScale = (sizeUtils.getWidth() / defaultWidth) * this.logoMaxScale;
+        // newScale = Math.min(newScale, this.logoMaxScale);
         newScale = Math.max(newScale, this.logoMinScale);
 
         for (const logoMesh of this.logoMeshes) {

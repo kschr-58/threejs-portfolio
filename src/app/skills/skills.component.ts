@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import Project from 'src/models/project';
+import DaoService from '../services/dao.service';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-skills',
@@ -9,8 +11,9 @@ import Project from 'src/models/project';
 export class SkillsComponent {
   public projects: Project[] = [];
 
-  constructor() {
-    this.addPlaceholderProjects();
+  constructor(private daoService: DaoService) {
+    // this.addPlaceholderProjects();
+    this.getProjects();
   }
 
   // TODO replace with real projects
@@ -24,5 +27,11 @@ export class SkillsComponent {
     );
 
     for (let i = 0; i < 4; i++) this.projects.push(placeholderProject);
+  }
+
+  private getProjects(): void {
+    this.daoService.sendGetRequest('/projects').pipe(
+      map((response: Project[]) => {return response})
+    ).subscribe(res => this.projects = res);
   }
 }

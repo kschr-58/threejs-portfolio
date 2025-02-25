@@ -1,6 +1,7 @@
 import { Mesh, Object3D, Vector3 } from "three";
 import { Experience } from "../experience";
 import { ScrollService } from "src/app/services/scroll.service";
+import { SizesService } from "src/app/services/sizes.service";
 
 export default abstract class PageComponent3D {
     protected experience: Experience;
@@ -20,7 +21,7 @@ export default abstract class PageComponent3D {
         this.topMargin = topMargin;
         this.zPosition = zPos;
 
-        experience.getSizeUtils().resizeEvent.subscribe(() => this.positionComponent());
+        SizesService.getInstance().resizeEvent.subscribe(() => this.positionComponent());
     }
 
     protected abstract mapResources(): void;
@@ -30,7 +31,7 @@ export default abstract class PageComponent3D {
     }
 
     protected positionComponent(): void {
-        const aspect = this.experience.getSizeUtils().getAspect();
+        const aspect = SizesService.getInstance().getAspect();
         const leftBorderPosition = -aspect / 2;
         const topBorderPosition = .5;
 

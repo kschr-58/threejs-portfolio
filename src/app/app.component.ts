@@ -3,6 +3,7 @@ import { HomeComponent } from './home/home.component';
 import { ThemeService } from 'src/app/services/theme.service';
 import { ScrollService } from './services/scroll.service';
 import ResourceLoadingService from './services/resource-loading.service';
+import { SizesService } from './services/sizes.service';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ export class AppComponent {
   constructor(
     private themeService: ThemeService,
     private scrollService: ScrollService,
-    private resourceLoadingService: ResourceLoadingService
+    private resourceLoadingService: ResourceLoadingService,
+    private sizesService: SizesService
   ) {
     const darkThemeEnabled = themeService.isDarkThemeEnabled();
 

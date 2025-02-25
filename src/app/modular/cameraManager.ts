@@ -2,6 +2,7 @@ import { Camera, CameraHelper, Group, OrthographicCamera, PerspectiveCamera, Vec
 import { Experience } from "./experience";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { ScrollService } from "../services/scroll.service";
+import { SizesService } from "../services/sizes.service";
 
 export default class CameraManager {
     private experience: Experience;
@@ -50,7 +51,7 @@ export default class CameraManager {
     }
 
     public resize(): void {
-        const sizes = this.experience.getSizeUtils();
+        const sizes = SizesService.getInstance();
         const aspect = sizes.getAspect();
 
         this.camera.left = (this.frustrumSize * aspect) / -2;
@@ -73,7 +74,7 @@ export default class CameraManager {
     }
 
     private initializeCamera(): void {
-        const sizes = this.experience.getSizeUtils();
+        const sizes = SizesService.getInstance();
         const aspect = sizes.getAspect();
 
         this.camera = new OrthographicCamera(
@@ -91,7 +92,7 @@ export default class CameraManager {
     }
 
     private scrollCamera(scrollY: number): void {
-        const sizes = this.experience.getSizeUtils();
+        const sizes = SizesService.getInstance();
         this.cameraScroll = -scrollY / sizes.getHeight();
 
         this.camera.position.y = this.cameraScroll;
@@ -121,7 +122,7 @@ export default class CameraManager {
         };
 
         this.debugObject['resizeCamera'] = (newSize: number) => {
-            const sizes = this.experience.getSizeUtils();
+            const sizes = SizesService.getInstance();
             const aspect = sizes.getAspect();
 
             console.log(`New size: ${newSize}`);
@@ -146,7 +147,7 @@ export default class CameraManager {
     }
 
     private initializeDebugCamera(): void {
-        const sizes = this.experience.getSizeUtils();
+        const sizes = SizesService.getInstance();
         const aspect = sizes.getAspect();
         const scene = this.experience.getScene();
 

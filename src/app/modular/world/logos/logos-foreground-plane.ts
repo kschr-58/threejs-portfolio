@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Experience } from "../../experience";
 import PageComponent3D from "../page-component-3d";
+import { SizesService } from "src/app/services/sizes.service";
 
 export default class LogosForegroundPlane extends PageComponent3D {
     private geometry!: THREE.PlaneGeometry;
@@ -16,7 +17,7 @@ export default class LogosForegroundPlane extends PageComponent3D {
         this.resize();
 
         // Subscribe to camera resize event
-        experience.getSizeUtils().resizeEvent.subscribe(() => {
+        SizesService.getInstance().resizeEvent.subscribe(() => {
             this.resize();
         });
     }
@@ -37,7 +38,7 @@ export default class LogosForegroundPlane extends PageComponent3D {
     }
 
     private resize(): void {
-        const aspect = this.experience.getSizeUtils().getAspect();
+        const aspect = SizesService.getInstance().getAspect();
 
         this.mesh.scale.x = aspect;
     }
