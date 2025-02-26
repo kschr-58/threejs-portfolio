@@ -41,7 +41,7 @@ export default class World {
     private onResourcesLoad(): void {
         this.character = new Character(this.experience, 0, 75, 100.5, -.5);
         this.foregroundPlane = new ForegroundPlane(this.experience, 1, 50, 50, 0.07);
-        this.logos = new LogosCollection(this.experience, 1, 7.5, 25, .15, 9, 7, 10);
+        this.logos = new LogosCollection(this.experience, 1, 7.5, 25, .15, 9, 8, 10);
         this.studyMono = new StudyMono(this.experience, 2, 75, 75, -.5);   
     }
 }

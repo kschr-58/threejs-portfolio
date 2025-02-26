@@ -1,10 +1,14 @@
-import { Mesh, ShaderMaterial, Raycaster } from "three";
+import { Mesh, ShaderMaterial, Raycaster, Texture, Vector3 } from "three";
 import { Experience } from "../../experience";
 import PageComponent3D from "../page-component-3d";
 import gsap from 'gsap';
 import RaycastObject from "src/models/raycast-object";
+import vertexShader from "../../shaders/logos/vertex.glsl";
+import fragmentShader from "../../shaders/logos/fragment.glsl";
+import ResourceLoadingService from "src/app/services/resource-loading.service";
 
 export default class Logo extends PageComponent3D {
+    private texture!: Texture;
     private material!: ShaderMaterial;
 
     constructor(experience: Experience, mesh: Mesh, page: number, leftMargin: number, topMargin: number, zPosition: number) {
@@ -17,11 +21,27 @@ export default class Logo extends PageComponent3D {
     }
 
     protected mapResources(): void {
-        this.positionableObject = this.mesh;
-        const mat = this.mesh.material;
-        if (!(mat instanceof ShaderMaterial)) throw new Error('Logo has not been assigned shader material');
+        const textureResource = ResourceLoadingService.getInstance().textureMap.get('logosTexture');
 
-        this.material = mat;
+        if (textureResource == undefined) throw new Error('Cannot load logos resources');
+
+        this.texture = textureResource;
+        
+        this.positionableObject = this.mesh;
+        this.material = new ShaderMaterial({
+            toneMapped: false,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            uniforms: {
+                uMeshSize: { value: 1.1 },
+                uTextureCoverage: { value: 0.0 },
+                uRingSize: { value: 0.05 },
+                uRingColor: { value: new Vector3(0.5, 0.0, 1.0) },
+                uTexture: { value: this.texture },
+            }
+        });
+
+        this.mesh.material = this.material;
     }
 
     public getMesh(): Mesh {
@@ -31,7 +51,7 @@ export default class Logo extends PageComponent3D {
     public tick(): void {
         const elapsedTime = this.experience.getTimeUtils().getElapsedTime();
         // const yRotation = (Math.sin(elapsedTime) + 1) * Math.PI; // Allow for full rotation to the other side
-        const yRotation = Math.sin(elapsedTime) *  0.25;
+        const yRotation = Math.sin(elapsedTime) *  0.3;
         const zRotation = Math.sin(elapsedTime) *  - 0.1;
 
         this.mesh.rotation.y = yRotation;

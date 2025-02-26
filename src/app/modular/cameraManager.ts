@@ -1,8 +1,8 @@
 import { Camera, CameraHelper, Group, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
 import { Experience } from "./experience";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { ScrollService } from "../services/scroll.service";
-import { SizesService } from "../services/sizes.service";
+import ScrollService from "../services/scroll.service";
+import SizesService from "../services/sizes.service";
 
 export default class CameraManager {
     private experience: Experience;

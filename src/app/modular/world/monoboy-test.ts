@@ -2,7 +2,7 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
 import * as THREE from 'three';
 import ResourceLoadingService from "src/app/services/resource-loading.service";
-import { SizesService } from "src/app/services/sizes.service";
+import SizesService from "src/app/services/sizes.service";
 
 export default class MonoboyTest {
     private experience: Experience;

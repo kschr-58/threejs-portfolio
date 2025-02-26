@@ -1,5 +1,4 @@
-import { Subject } from "rxjs";
-import { SizesService } from "src/app/services/sizes.service";
+import SizesService from "src/app/services/sizes.service";
 import { Vector2, Raycaster, Object3D } from "three";
 import CameraManager from "../cameraManager";
 import RaycastObject from "src/models/raycast-object";

@@ -1,17 +1,19 @@
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { Experience } from "../experience";
 import { gsap } from 'gsap';
 import * as THREE from 'three';
 import { ThemeService } from "src/app/services/theme.service";
 import PageComponent3D from "./page-component-3d";
-import { ScrollService } from "src/app/services/scroll.service";
+import ScrollService from "src/app/services/scroll.service";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
 import RaycastObject from "src/models/raycast-object";
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
+import vertexShader from "../shaders/character/vertex.glsl";
+import fragmentShader from "../shaders/character/fragment.glsl";
 
 export default class Character extends PageComponent3D {
     // Resources
     private sceneGroup!: THREE.Group;
-    private textureMaterial!: THREE.MeshBasicMaterial;
+    private shaderMaterial!: CustomShaderMaterial;
     private outlineMaterial!: THREE.MeshBasicMaterial;
     private defaultTexture!: THREE.Texture;
     private invertedTexture!: THREE.Texture;
@@ -26,6 +28,7 @@ export default class Character extends PageComponent3D {
     private headBone!: THREE.Bone;
     private indexFingerBone!: THREE.Bone;
     private headRotationObject!: THREE.Object3D;
+    private textureMesh!: THREE.Mesh;
     private raycastPlane!: THREE.Mesh;
     private headTrackingPointObject!: THREE.Mesh;
     private snapVFXSprite!: THREE.Sprite;
@@ -50,8 +53,8 @@ export default class Character extends PageComponent3D {
 
     // Positions and rotations
     private headWorldPosition = new THREE.Vector3();
-    private defaultRotation: THREE.Quaternion = new THREE.Quaternion;
-    private raycastPlaneOffset = new THREE.Vector3(-.05, .35, .5);
+    private defaultHeadRotation: THREE.Quaternion = new THREE.Quaternion;
+    private raycastPlaneOffset = new THREE.Vector3(-0.05, 0.35, 0.5);
 
     // Values
     private sceneScale = 1.3;
@@ -62,10 +65,11 @@ export default class Character extends PageComponent3D {
     private blinkDelay = 5000;
     private themeTransitionQueued = false;
     private themeTransitionInProgress = false;
-    private snapVFXParticleScale = .08;
-    private snapVFXDuration = .25;
+    private snapVFXParticleScale = 0.08;
+    private snapVFXDuration = 0.25;
     private isDocumentVisible = true;
     private deltaTimeNormalizationRequired = false;
+    private textureFillDuration = 0.65;
 
     // Debugging
     private debugObject: {[k: string]: any} = {};
@@ -116,12 +120,14 @@ export default class Character extends PageComponent3D {
 
     protected mapResources(): void {
         const characterResource = ResourceLoadingService.getInstance().gltfMap.get('character');
-        const invertedTextureResource = ResourceLoadingService.getInstance().textureMap.get('characterTextureInverted');
+        const characterTexture = ResourceLoadingService.getInstance().textureMap.get('characterTexture');
+        const darkCharacterTexture = ResourceLoadingService.getInstance().textureMap.get('characterTextureInverted');
         const snapVFXResource = ResourceLoadingService.getInstance().textureMap.get('snapVFX');
 
         if (characterResource == undefined ||
             characterResource.scene == undefined ||
-            invertedTextureResource == undefined ||
+            characterTexture == undefined ||
+            darkCharacterTexture == undefined ||
             snapVFXResource == undefined) throw new Error('Could not load character resources');
 
         this.sceneGroup = characterResource.scene;
@@ -129,14 +135,44 @@ export default class Character extends PageComponent3D {
         this.animationMixer = new THREE.AnimationMixer(this.sceneGroup);
         this.animations = characterResource.animations;
 
-        invertedTextureResource.colorSpace = THREE.SRGBColorSpace;
-        this.invertedTexture = invertedTextureResource;
+        characterTexture.colorSpace = THREE.SRGBColorSpace;
+        this.defaultTexture = characterTexture;
+
+        darkCharacterTexture.colorSpace = THREE.SRGBColorSpace;
+        this.invertedTexture = darkCharacterTexture;
 
         snapVFXResource.colorSpace = THREE.SRGBColorSpace;
         this.snapVFXTexture = snapVFXResource;
 
         this.mapCharacterComponents();
+        this.createShaderMaterials();
         this.mapAnimations();
+    }
+
+    private createShaderMaterials(): void {
+        const boundingBox = this.textureMesh.geometry.boundingBox;
+        if (!boundingBox) return;
+
+        const meshLength = boundingBox.min.y + boundingBox.max.y;
+
+        this.shaderMaterial = new CustomShaderMaterial({
+            baseMaterial: THREE.MeshBasicMaterial,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            toneMapped: false,
+            uniforms: {
+                uLightTexture: { value: this.defaultTexture },
+                uDarkTexture: { value: this.invertedTexture },
+                uMeshSize: { value: meshLength },
+                uTextureCoverage: { value: 80.0 },
+                uRingSize: { value: 0.005 },
+                uRingColor: { value: new THREE.Vector3(0.5, 0.0, 1.0) },
+                uTransitionPoint: { value: new THREE.Vector3(0.0, meshLength / 2, 0.0) },
+                uToDarkTheme: { value: true }
+            }
+        });
+
+        this.textureMesh.material = this.shaderMaterial;
     }
     
     private mapCharacterComponents(): void {
@@ -155,14 +191,8 @@ export default class Character extends PageComponent3D {
                 this.morphTargetMeshes.push(node);
 
                 if (node.material.name == 'Texture') {
-                    this.textureMaterial = node.material;
-
-                    const texture = this.textureMaterial.map;
-                    if (texture == undefined) throw new Error('Character is missing texture');
-
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    node.material.toneMapped = false;
-                    this.defaultTexture = texture;
+                    this.textureMesh = node;
+                    node.material = this.shaderMaterial;
                 } else if (node.material.name == 'Outline_Black') {
                     node.material = this.outlineMaterial;
                     node.material.toneMapped = false;
@@ -175,7 +205,7 @@ export default class Character extends PageComponent3D {
                     node.getWorldPosition(this.headWorldPosition);
     
                     // Set default head rotation
-                    this.defaultRotation = this.headBone.quaternion.clone();
+                    this.defaultHeadRotation = this.headBone.quaternion.clone();
     
                     // Add head rotation object
                     this.headRotationObject = new THREE.Mesh(
@@ -236,10 +266,16 @@ export default class Character extends PageComponent3D {
     }
 
     private handleHeadRotation(animationDeltaSpeed: number): void {
+        // If theme transition is queued, quickly reset headbone rotation
+        if (this.themeTransitionQueued) {
+            this.headBone.quaternion.slerp(this.defaultHeadRotation, animationDeltaSpeed * this.headRotationSpeed * 6);
+
+            return;
+        }
 
         // Smooth headbone rotation towards mouse position or back to default position
         if (this.headRotationEnabled) this.headBone.quaternion.slerp(this.headRotationObject.quaternion, animationDeltaSpeed * this.headRotationSpeed);
-        else this.headBone.quaternion.slerp(this.defaultRotation, animationDeltaSpeed * this.headRotationSpeed);
+        else this.headBone.quaternion.slerp(this.defaultHeadRotation, animationDeltaSpeed * this.headRotationSpeed);
     }
 
     private handleAnimationQueue(): void {
@@ -269,7 +305,8 @@ export default class Character extends PageComponent3D {
     }
 
     private setThemeMaterials(darkThemeEnabled: boolean) {
-        this.textureMaterial.map = darkThemeEnabled ? this.invertedTexture : this.defaultTexture;
+        // this.textureMaterial.map = darkThemeEnabled ? this.invertedTexture : this.defaultTexture;
+        darkThemeEnabled ? this.lightTextureFill() : this.darkTextureFill();
     }
 
     // #endregion
@@ -376,6 +413,10 @@ export default class Character extends PageComponent3D {
 
         this.themeTransitionInProgress = true;
 
+        // Reset head rotation if not in default rotation
+        const quaternionDistance = this.headBone.quaternion.w - this.defaultHeadRotation.w;
+        if (Math.abs(quaternionDistance) > 0.005) return;
+
         this.playAnimationAction(this.fingerSnapAction);
     }
 
@@ -407,6 +448,19 @@ export default class Character extends PageComponent3D {
         });
     }
 
+    // #endregion
+
+    // #region Shader logic
+    
+    private lightTextureFill(): void {
+        this.shaderMaterial.uniforms['uToDarkTheme'].value = false;
+        gsap.fromTo(this.shaderMaterial.uniforms['uTextureCoverage'], {value: 0.0}, { value: 100.0, duration: this.textureFillDuration, ease: 'power1.out'});
+    }
+
+    private darkTextureFill(): void {
+        this.shaderMaterial.uniforms['uToDarkTheme'].value = true;
+        gsap.fromTo(this.shaderMaterial.uniforms['uTextureCoverage'], {value: 0.0}, { value: 100.0, duration: this.textureFillDuration, ease: 'power1.out'});
+    }
     // #endregion
 
     // #region Raycasting
@@ -444,6 +498,8 @@ export default class Character extends PageComponent3D {
     }
 
     private enableHeadTracking(intersection: THREE.Intersection): void {
+        if (this.themeTransitionInProgress) return;
+
         // Rotate head rotation object
         const contactPoint = intersection.point;
 
@@ -478,6 +534,7 @@ export default class Character extends PageComponent3D {
         
         // Animations
         const animationFolder = characterFolder.addFolder('Animation');
+        animationFolder.close();
 
         for (const animation of this.animations) {
             this.debugObject[animation.name] = () => {
@@ -491,6 +548,7 @@ export default class Character extends PageComponent3D {
 
         // Morph targets
         const morphFolder = characterFolder.addFolder('Morph Targets');
+        morphFolder.close();
 
         for (const mt in this.morphTargetsDict) {
           const index = this.morphTargetsDict[mt];
@@ -501,6 +559,24 @@ export default class Character extends PageComponent3D {
           .listen()
           .onChange(() => this.setMorphTransform(index, this.morphTargetInfluences[index]));
         }
+
+        // Shader
+        const shaderFolder = characterFolder.addFolder('Shader');
+
+        this.debugObject['TextureFill'] = 0;
+        this.debugObject['ToggleFill'] = () => {
+            if (this.shaderMaterial.uniforms['uTextureCoverage'].value >= 100) {
+                this.darkTextureFill();
+            } else {
+                this.lightTextureFill();
+            }
+        }
+
+        shaderFolder.add(this.debugObject, 'TextureFill').onFinishChange(() => {
+            this.shaderMaterial.uniforms['uTextureCoverage'].value = this.debugObject['TextureFill'];
+        });
+
+        shaderFolder.add(this.debugObject, 'ToggleFill').name('Texture transition');
     }
 
     // #endregion

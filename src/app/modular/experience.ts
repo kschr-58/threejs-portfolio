@@ -8,7 +8,7 @@ import RaycastUtils from './utils/raycast-utils';
 import { ThemeService } from '../services/theme.service';
 import ResourceLoadingService from '../services/resource-loading.service';
 import { sourcesArray } from 'src/app/modular/sources';
-import { SizesService } from '../services/sizes.service';
+import SizesService from '../services/sizes.service';
 
 let instance: Experience | null = null;
 

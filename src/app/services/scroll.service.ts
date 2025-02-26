@@ -4,7 +4,7 @@ import { Subject } from "rxjs";
 @Injectable({
     providedIn: 'root'
 })
-export class ScrollService {
+export default class ScrollService {
     private static INSTANCE: ScrollService;
     private scrollTop = 0;
     private currentSection: number = 0;

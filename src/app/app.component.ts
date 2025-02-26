@@ -1,9 +1,9 @@
 import { Component, HostBinding } from '@angular/core';
 import { HomeComponent } from './home/home.component';
 import { ThemeService } from 'src/app/services/theme.service';
-import { ScrollService } from './services/scroll.service';
+import ScrollService from './services/scroll.service';
 import ResourceLoadingService from './services/resource-loading.service';
-import { SizesService } from './services/sizes.service';
+import SizesService from './services/sizes.service';
 
 @Component({
   selector: 'app-root',

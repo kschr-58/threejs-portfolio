@@ -1,7 +1,7 @@
 import { Mesh, Object3D, Vector3 } from "three";
 import { Experience } from "../experience";
-import { ScrollService } from "src/app/services/scroll.service";
-import { SizesService } from "src/app/services/sizes.service";
+import ScrollService from "src/app/services/scroll.service";
+import SizesService from "src/app/services/sizes.service";
 
 export default abstract class PageComponent3D {
     protected experience: Experience;

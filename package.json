@@ -23,6 +23,7 @@
     "gsap": "^3.5.1",
     "rxjs": "~7.4.0",
     "three": "^0.167.1",
+    "three-custom-shader-material": "^6.3.1",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
   },

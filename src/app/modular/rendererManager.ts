@@ -1,6 +1,6 @@
 import { CineonToneMapping, LinearSRGBColorSpace, PCFShadowMap, WebGLRenderer } from "three";
 import { Experience } from "./experience";
-import { SizesService } from "../services/sizes.service";
+import SizesService from "../services/sizes.service";
 
 export class RendererManager {
     private experience: Experience;

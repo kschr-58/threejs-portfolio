@@ -12,8 +12,7 @@ void main() {
 
     // Untextured color
     vec4 color = vec4(vec3(0.16), 1.0);
-    if (textureColor.r == 0.0 && textureColor.g == 0.0 && textureColor.b == 0.0) color = vec4(vec3(0.0), 1.0);
-    else if (textureColor.r >= .95 && textureColor.g >= .95 && textureColor.b >= .95) color = vec4(vec3(1.0), 1.0);
+    if (textureColor.r >= .95 && textureColor.g >= .95 && textureColor.b >= .95) color = vec4(vec3(1.0), 1.0);
 
     float scaledTextureCoverage = uMeshSize / 100.0 * uTextureCoverage;
 

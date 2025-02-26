@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Experience } from "../experience";
 import PageComponent3D from "./page-component-3d";
-import { SizesService } from "src/app/services/sizes.service";
+import SizesService from "src/app/services/sizes.service";
 
 export default class ForegroundPlane extends PageComponent3D {
     private geometry!: THREE.PlaneGeometry;

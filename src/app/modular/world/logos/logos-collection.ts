@@ -1,13 +1,11 @@
 import { Group, Mesh, ShaderMaterial, Texture, Vector3 } from "three";
 import { Experience } from "../../experience";
 import Logo from "./logo";
-import { ScrollService } from "src/app/services/scroll.service";
+import ScrollService from "src/app/services/scroll.service";
 import LogosForegroundPlane from "./logos-foreground-plane";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
+import SizesService from "src/app/services/sizes.service";
 import gsap from 'gsap';
-import vertexShader from "../../shaders/logos/vertex.glsl";
-import fragmentShader from "../../shaders/logos/fragment.glsl";
-import { SizesService } from "src/app/services/sizes.service";
 
 export default class LogosCollection {
     private logos = new Map<string, Logo>();
@@ -15,7 +13,6 @@ export default class LogosCollection {
     // ThreeJS components
     private experience: Experience;
     private sceneGroup!: Group;
-    private material!: ShaderMaterial;
     private logosTexture!: Texture;
     private foregroundPlane!: LogosForegroundPlane;
     private logoMeshes: Mesh[] = [];
@@ -87,44 +84,14 @@ export default class LogosCollection {
 
     private mapResources(): void {
         const gltf = ResourceLoadingService.getInstance().gltfMap.get('logos');
-        const textureResource = ResourceLoadingService.getInstance().textureMap.get('logosTexture');
-
-        if (gltf == undefined || textureResource == undefined) throw new Error('Cannot load logos resources');
-
-        this.logosTexture = textureResource;
-
-        this.material = new ShaderMaterial({
-            toneMapped: false,
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
-            uniforms: {
-                uMeshSize: { value: 1.1 },
-                uTextureCoverage: { value: 0.0 },
-                uRingSize: { value: 0.05 },
-                uRingColor: { value: new Vector3(0.5, 0.0, 1.0) },
-                uTexture: { value: this.logosTexture },
-            }
-        });
+        
+        if (gltf == undefined) throw new Error('Cannot load logos resources');
 
         this.sceneGroup = gltf.scene;
         this.sceneGroup.traverse(node => {
             if (node instanceof Mesh) {
-                const mat = new ShaderMaterial({
-                    toneMapped: false,
-                    vertexShader: vertexShader,
-                    fragmentShader: fragmentShader,
-                    uniforms: {
-                        uMeshSize: { value: 1.1 },
-                        uTextureCoverage: { value: 0.0 },
-                        uRingSize: { value: 0.05 },
-                        uRingColor: { value: new Vector3(0.5, 0.0, 1.0) },
-                        uTexture: { value: this.logosTexture },
-                    }
-                });
-
-                node.material = mat;
                 this.logoMeshes.push(node);
-                this.material.visible = false;
+                node.visible = false;
             }
         });
     }
@@ -161,13 +128,13 @@ export default class LogosCollection {
     private enterAnimation(): void {
         const logoComponents = this.logos.values();
 
-        this.material.visible = true;
-
         let index = 0;
         for (const logo of logoComponents) {
             const mesh = logo.getMesh();
 
             const startingYPos = this.collectionPage * -1 + .45;
+
+            mesh.visible = true;
 
             gsap.from(mesh.position, {y: startingYPos, duration: this.logoBaseAnimationDuration + index * .1, ease: 'circ.inOut', delay: index * .2});
             index++;

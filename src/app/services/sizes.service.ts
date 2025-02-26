@@ -4,7 +4,7 @@ import { Subject } from "rxjs";
 @Injectable({
     providedIn: 'root'
 })
-export class SizesService {
+export default class SizesService {
     private static INSTANCE: SizesService;
 
     private width!: number;
