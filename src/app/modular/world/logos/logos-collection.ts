@@ -5,13 +5,10 @@ import ResourceLoadingService from "src/app/services/resource-loading.service";
 import PagePlane from "../page-plane";
 
 export default class LogosCollection {
-    private logos = new Map<string, Logo>();
-
     // ThreeJS components
     private experience: Experience;
     private sceneGroup!: Group;
     private logoMeshes: Mesh[] = [];
-    private logoBackgroundMesh!: Mesh;
 
     // Collection positioning
     private collectionPage: number;
@@ -58,16 +55,8 @@ export default class LogosCollection {
 
         this.sceneGroup = gltf.scene;
         this.sceneGroup.traverse(node => {
-            if (node instanceof Mesh) {
-                if (node.name == 'Background') {
-                    node.material = new MeshBasicMaterial({
-                        color: new Color('black'),
-                        transparent: true,
-                        opacity: 0.5
-                    })
-                    this.logoBackgroundMesh = node;
-                }
-                else this.logoMeshes.push(node);
+            if (node instanceof Mesh && node.children.length > 0) {
+                this.logoMeshes.push(node);
             }
         });
     }
@@ -86,9 +75,7 @@ export default class LogosCollection {
 
             const xMargin = this.collectionLeftMargin + (this.logoHorizontalMargin * columnIndex);
 
-            const newLogo = new Logo(this.experience, this.logoBackgroundMesh, logoMesh, this.collectionPage, xMargin, yMargin, this.collectionZPosition);
-
-            this.logos.set(logoMesh.name, newLogo);
+            const newLogo = new Logo(this.experience, logoMesh, this.collectionPage, xMargin, yMargin, this.collectionZPosition);
 
             columnIndex++;
         }

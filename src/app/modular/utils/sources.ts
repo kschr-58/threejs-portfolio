@@ -30,6 +30,6 @@ export const sourcesArray = [
     new Source(
         'logosTexture',
         'gltfTexture',
-        `${environment.apiUrl}/texture/Logos_Texture.jpg`
+        `${environment.apiUrl}/texture/Logos_Texture.png`
     ),
 ];

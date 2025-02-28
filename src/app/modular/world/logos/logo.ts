@@ -1,4 +1,4 @@
-import { Mesh, ShaderMaterial, Raycaster, Texture, Vector3, BoxGeometry, MeshBasicMaterial, Color } from "three";
+import { Mesh, ShaderMaterial, Raycaster, Texture, Vector3, BoxGeometry, MeshBasicMaterial, Color, Material } from "three";
 import { Experience } from "../../experience";
 import PageComponent3D from "../abstract-classes/page-component-3d";
 import gsap from 'gsap';
@@ -11,11 +11,14 @@ import ScrollService from "src/app/services/scroll.service";
 
 export default class Logo extends PageComponent3D {
     // Resources
+    private material!: Material;
+    private textMaterial!: Material;
     private texture!: Texture;
-    private material!: ShaderMaterial;
+    private logoMaterial!: ShaderMaterial;
 
     // Scene objects
     private logoMesh!: Mesh;
+    private textMesh!: Mesh;
 
     // Values
     private name: string;
@@ -23,23 +26,20 @@ export default class Logo extends PageComponent3D {
     private meshBaseScale = 0.085;
     private meshMaxScale = 0.09;
     private meshMinScale = 0.03;
-    private currentMeshScale = 1;
     private transitionYOffset = 0.2;
     private transitionDuration = 0.5;
     private logoSpinDuration = 1.5;
-    private textYOffset = -0.03;
-    private currentlyHovered = false;
     private idleYRotationAmount = 0.35;
     private idleZRotationAmount = 0.05;
     private idleRotationDuration = 2;
 
-    private transitionAnimationTL: gsap.core.Timeline;
+    private movementTransitionTL: gsap.core.Timeline;
+    private textureTransitionTL: gsap.core.Timeline;
     private idleAnimationTL: gsap.core.Timeline;
 
     constructor(
         experience: Experience,
         mesh: Mesh,
-        logoMesh: Mesh, 
         page: number,
         leftMargin: number,
         topMargin: number,
@@ -47,14 +47,13 @@ export default class Logo extends PageComponent3D {
 
         super(experience, page, leftMargin, topMargin, zPosition);
 
-        this.transitionAnimationTL = gsap.timeline({paused: true});
+        this.movementTransitionTL = gsap.timeline({paused: true});
+        this.textureTransitionTL = gsap.timeline({paused: true});
         this.idleAnimationTL = gsap.timeline();
 
-        this.name = logoMesh.name.split('_')[0];
+        this.name = mesh.name;
 
-        this.mesh = mesh.clone();
-        this.positionableObject = this.mesh;
-        this.logoMesh = logoMesh;
+        this.mesh = mesh;
 
         this.mapResources();
         this.addToScene();
@@ -67,20 +66,47 @@ export default class Logo extends PageComponent3D {
         SizesService.getInstance().resizeEvent.subscribe(() => {
             this.resize();
         });
-
-        ScrollService.getInstance().scrollEvent.subscribe(() => {
-            if (this.currentlyHovered) this.showTextElement();
-        })
     }
 
     protected mapResources(): void {
+        this.positionableObject = this.mesh;
+
+        const logo = this.mesh.getObjectByName(`${this.name}_Logo`);
+        const text = this.mesh.getObjectByName(`${this.name}_Text`);
+        if (logo == undefined || !(logo instanceof Mesh)) throw new Error(`Cannot locate logo mesh for logo ${this.name}`);
+        if (text == undefined || !(text instanceof Mesh)) throw new Error(`Cannot locate text mesh for logo ${this.name}`);
+
+        this.logoMesh = logo;
+        this.textMesh = text;
+
         const textureResource = ResourceLoadingService.getInstance().textureMap.get('logosTexture');
 
         if (textureResource == undefined) throw new Error('Cannot load logos resources');
 
         this.texture = textureResource;
-        
-        this.material = new ShaderMaterial({
+
+        // Background mesh material
+        this.material = new MeshBasicMaterial({
+            toneMapped: false,
+            map: this.texture,
+            transparent: true,
+            opacity: 0.1
+        });
+
+        this.mesh.material = this.material;
+
+        // Background mesh material
+        this.textMaterial = new MeshBasicMaterial({
+            toneMapped: false,
+            map: this.texture,
+            transparent: true,
+            opacity: 0
+        });
+
+        this.textMesh.material = this.textMaterial;
+
+        // Logo material
+        this.logoMaterial = new ShaderMaterial({
             toneMapped: false,
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
@@ -93,9 +119,8 @@ export default class Logo extends PageComponent3D {
             }
         });
 
-        this.logoMesh.material = this.material;
-        this.logoMesh.position.set(0, 0, this.logoZOffset);
-        this.mesh.add(this.logoMesh);
+        this.logoMesh.material = this.logoMaterial;
+        this.logoMesh.position.set(0, 0, this.logoZOffset);;
     }
 
     public getMesh(): Mesh {
@@ -150,59 +175,69 @@ export default class Logo extends PageComponent3D {
             duration: this.logoSpinDuration,
         });
 
+        // Texture transition tweens
+        const textureFillTween = gsap.to(this.logoMaterial.uniforms['uTextureCoverage'], {
+            value: 100.0, 
+            duration: this.transitionDuration, 
+            ease: 'power1.out'
+        });
+
+        const onHoverBackgroundOpacityTween = gsap.to(this.material, {
+            opacity: 0.85,
+            duration: this.transitionDuration,
+            ease: 'power2.out'
+        });
+
+        const onHoverTextOpacityTween = gsap.to(this.textMaterial, {
+            opacity: 1,
+            duration: this.transitionDuration,
+            ease: 'power2.out'
+        });
+
         // Add tweens to timelines
-        this.idleAnimationTL.add(initialRotationTween).add(loopingRotationTween);
-        this.transitionAnimationTL.addLabel('onHover')
-        .add(onHoverPositionTween, 'onHover')
-        .add(onHoverRotationTween, 'onHover');
+        this.idleAnimationTL
+        .add(initialRotationTween)
+        .add(loopingRotationTween);
+        
+        this.movementTransitionTL
+        .add(onHoverPositionTween, 0)
+        .add(onHoverRotationTween, 0);
+
+        this.textureTransitionTL
+        .add(textureFillTween, 0)
+        .add(onHoverBackgroundOpacityTween, 0)
+        .add(onHoverTextOpacityTween, 0);
     }
 
     private onInitialHover(): void {
-        this.currentlyHovered = true;
-
         this.textureFill();
-        this.showTextElement();
 
-        // Pause idle animation timeline
+        // Pause idle animation timeline before playing transition timeline
         this.idleAnimationTL.pause();
-        this.transitionAnimationTL.play();
+
+        this.movementTransitionTL.timeScale(1);
+        this.movementTransitionTL.play();
     }
 
     private onCursorExit(): void {
-        this.currentlyHovered = false;
-
         this.undoTextureFill();
         this.hideTextElement();
 
-        this.transitionAnimationTL.reverse().then(() => {
+        this.movementTransitionTL.timeScale(1.25);
+        this.movementTransitionTL.reverse()
+        .then(() => {
             this.idleAnimationTL.restart();
         });
     }
 
     private textureFill(): void {
-        gsap.to(this.material.uniforms['uTextureCoverage'], { value: 100.0, duration: this.transitionDuration, ease: 'power1.out'});
-
+        // gsap.to(this.logoMaterial.uniforms['uTextureCoverage'], { value: 100.0, duration: this.transitionDuration, ease: 'power1.out'});
+        this.textureTransitionTL.play();
     }
 
     private undoTextureFill(): void {
-        gsap.to(this.material.uniforms['uTextureCoverage'], { value: 0.0, duration: this.transitionDuration, ease: 'power1.out'});
-    }
-
-    private showTextElement(): void {
-        const logoNameElement = document.getElementById('logo-name');
-        if (logoNameElement == undefined) throw new Error('Cannot locate logo name element in document');
-        
-        const screenPosition = this.mesh.position.clone();
-        screenPosition.y += this.textYOffset;
-
-        screenPosition.project(this.experience.getCameraManager().getCamera());
-
-        const translateX = screenPosition.x * SizesService.getInstance().getWidth() / 2;
-        const translateY = -screenPosition.y * SizesService.getInstance().getHeight() / 2 - this.textYOffset * this.currentMeshScale;
-        
-        logoNameElement.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
-        logoNameElement.innerHTML = this.name;
-        logoNameElement.style.visibility = 'visible';
+        // gsap.to(this.logoMaterial.uniforms['uTextureCoverage'], { value: 0.0, duration: this.transitionDuration, ease: 'power1.out'});
+        this.textureTransitionTL.reverse();
     }
 
     private hideTextElement(): void {
@@ -220,8 +255,6 @@ export default class Logo extends PageComponent3D {
         let newScale = (sizeUtils.getWidth() / defaultWidth) * this.meshBaseScale;
         newScale = Math.min(newScale, this.meshMaxScale);
         newScale = Math.max(newScale, this.meshMinScale);
-
-        this.currentMeshScale = newScale;
 
         this.mesh.scale.set(newScale, newScale, newScale);
     }
