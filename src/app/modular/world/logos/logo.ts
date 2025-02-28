@@ -86,7 +86,7 @@ export default class Logo extends PageComponent3D {
         this.texture = textureResource;
 
         // Background mesh material
-        this.material = new MeshBasicMaterial({
+        this.material = new MeshBasicMaterial({ // TODO create once and pass to all logo instances
             toneMapped: false,
             map: this.texture,
             transparent: true,
@@ -96,7 +96,7 @@ export default class Logo extends PageComponent3D {
         this.mesh.material = this.material;
 
         // Background mesh material
-        this.textMaterial = new MeshBasicMaterial({
+        this.textMaterial = new MeshBasicMaterial({ // TODO create once and pass to all logo instances
             toneMapped: false,
             map: this.texture,
             transparent: true,

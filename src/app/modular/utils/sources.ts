@@ -5,17 +5,17 @@ export const sourcesArray = [
     new Source(
         'character',
         'gltf',
-        `${environment.apiUrl}/file/Character.glb`
+        `${environment.apiUrl}/model/Character.glb`
     ),
     new Source(
         'study-mono',
         'gltf',
-        `${environment.apiUrl}/file/Study_Mono.glb`
+        `${environment.apiUrl}/model/Study_Mono.glb`
     ),
     new Source(
         'logos',
         'gltf',
-        `${environment.apiUrl}/file/Logos.glb`
+        `${environment.apiUrl}/model/Logos.glb`
     ),
     new Source(
         'characterTexture',
