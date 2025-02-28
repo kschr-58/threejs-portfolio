@@ -3,6 +3,7 @@ import { Experience } from "../experience";
 import * as THREE from 'three';
 import ResourceLoadingService from "src/app/services/resource-loading.service";
 import SizesService from "src/app/services/sizes.service";
+import DebugService from "src/app/services/debug.service";
 
 export default class MonoboyTest {
     private experience: Experience;
@@ -50,7 +51,7 @@ export default class MonoboyTest {
         this.animations = resource.animations;
 
         // Check for debug mode
-        if (experience.getDebugManager().isDebugModeEnabled()) this.debugEnabled = true;
+        if (DebugService.getInstance().isDebugModeEnabled()) this.debugEnabled = true;
 
         this.setMaterials();
         this.addToScene();

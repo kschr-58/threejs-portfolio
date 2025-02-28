@@ -1,6 +1,6 @@
 import SizesService from "src/app/services/sizes.service";
 import { Vector2, Raycaster, Object3D } from "three";
-import CameraManager from "../cameraManager";
+import CameraManager from "../managers/camera-manager";
 import RaycastObject from "src/models/raycast-object";
 
 export default class RaycastUtils {

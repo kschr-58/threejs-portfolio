@@ -25,7 +25,7 @@ export class ShowcaseItemComponent implements AfterViewInit {
     this.animationTL = gsap.timeline({
       defaults: {
         duration: this.animationDuration,
-        ease: 'power2.out'
+        ease: 'power3.inOut'
       },
       paused: true
     });

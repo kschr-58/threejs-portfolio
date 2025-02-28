@@ -1,11 +1,8 @@
-import { Group, Mesh, ShaderMaterial, Texture, Vector3 } from "three";
+import { Color, Group, Mesh, MeshBasicMaterial, Plane, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
 import { Experience } from "../../experience";
 import Logo from "./logo";
-import ScrollService from "src/app/services/scroll.service";
-import LogosForegroundPlane from "./logos-foreground-plane";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
-import SizesService from "src/app/services/sizes.service";
-import gsap from 'gsap';
+import PagePlane from "../page-plane";
 
 export default class LogosCollection {
     private logos = new Map<string, Logo>();
@@ -13,9 +10,8 @@ export default class LogosCollection {
     // ThreeJS components
     private experience: Experience;
     private sceneGroup!: Group;
-    private logosTexture!: Texture;
-    private foregroundPlane!: LogosForegroundPlane;
     private logoMeshes: Mesh[] = [];
+    private logoBackgroundMesh!: Mesh;
 
     // Collection positioning
     private collectionPage: number;
@@ -28,11 +24,6 @@ export default class LogosCollection {
     private logosPerRow: number;
     private logoHorizontalMargin: number; // Value represents a screen percentage
     private logoVerticalMargin: number;
-
-    // Values
-    private hasAnimationPlayed = false;
-    private logoMaxScale = .1;
-    private logoMinScale = .05;
 
     // Debugging
     private debugObject: {[k: string]: any} = {};
@@ -57,29 +48,7 @@ export default class LogosCollection {
         this.logoVerticalMargin = logoVerticalMargin;
 
         this.mapResources();
-        this.instantiateForegroundPlane();
         this.instantiateMeshes();
-
-        // Subscribe to section event to play animation
-        ScrollService.getInstance().newSectionEvent.subscribe(newSection => {
-            if (newSection == page && !this.hasAnimationPlayed) {
-                this.hasAnimationPlayed = true;
-                this.enterAnimation();
-            }
-        });
-
-        // Subscribe to resize event to scale logo spacing
-        SizesService.getInstance().resizeEvent.subscribe(() => {
-            this.resize();
-        });
-    }
-
-    public tick(): void {
-        const logoComponents = this.logos.values();
-
-        for (const logo of logoComponents) {
-            logo.tick();
-        }
     }
 
     private mapResources(): void {
@@ -90,14 +59,17 @@ export default class LogosCollection {
         this.sceneGroup = gltf.scene;
         this.sceneGroup.traverse(node => {
             if (node instanceof Mesh) {
-                this.logoMeshes.push(node);
-                node.visible = false;
+                if (node.name == 'Background') {
+                    node.material = new MeshBasicMaterial({
+                        color: new Color('black'),
+                        transparent: true,
+                        opacity: 0.5
+                    })
+                    this.logoBackgroundMesh = node;
+                }
+                else this.logoMeshes.push(node);
             }
         });
-    }
-
-    private instantiateForegroundPlane(): void {
-        this.foregroundPlane = new LogosForegroundPlane(this.experience, 1, 50, 9, this.collectionZPosition + .3);
     }
 
     private instantiateMeshes(): void {
@@ -114,44 +86,11 @@ export default class LogosCollection {
 
             const xMargin = this.collectionLeftMargin + (this.logoHorizontalMargin * columnIndex);
 
-            const newLogo = new Logo(this.experience, logoMesh, this.collectionPage, xMargin, yMargin, this.collectionZPosition);
+            const newLogo = new Logo(this.experience, this.logoBackgroundMesh, logoMesh, this.collectionPage, xMargin, yMargin, this.collectionZPosition);
 
             this.logos.set(logoMesh.name, newLogo);
 
             columnIndex++;
-        }
-
-        this.resize();
-        
-    }
-
-    private enterAnimation(): void {
-        const logoComponents = this.logos.values();
-
-        let index = 0;
-        for (const logo of logoComponents) {
-            const mesh = logo.getMesh();
-
-            const startingYPos = this.collectionPage * -1 + .45;
-
-            mesh.visible = true;
-
-            gsap.from(mesh.position, {y: startingYPos, duration: this.logoBaseAnimationDuration + index * .1, ease: 'circ.inOut', delay: index * .2});
-            index++;
-        }
-    }
-
-    private resize(): void {
-        // Resize scale based on new screen width
-        const sizeUtils = SizesService.getInstance();
-        const defaultWidth = 1920; // Default full HD resolution used for scaling
-
-        let newScale = (sizeUtils.getWidth() / defaultWidth) * this.logoMaxScale;
-        // newScale = Math.min(newScale, this.logoMaxScale);
-        newScale = Math.max(newScale, this.logoMinScale);
-
-        for (const logoMesh of this.logoMeshes) {
-            logoMesh.scale.set(newScale, newScale, newScale);
         }
     }
 }

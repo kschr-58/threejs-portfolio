@@ -20,12 +20,7 @@ export const sourcesArray = [
     new Source(
         'characterTexture',
         'gltfTexture',
-        `${environment.apiUrl}/texture/MonoboyTexture.jpg`
-    ),
-    new Source(
-        'characterTextureInverted',
-        'gltfTexture',
-        `${environment.apiUrl}/texture/MonoboyTexture_Inverted_2.jpg`
+        `${environment.apiUrl}/texture/MonoboyTexture.png`
     ),
     new Source(
         'snapVFX',

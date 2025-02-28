@@ -4,6 +4,7 @@ import { ThemeService } from 'src/app/services/theme.service';
 import ScrollService from './services/scroll.service';
 import ResourceLoadingService from './services/resource-loading.service';
 import SizesService from './services/sizes.service';
+import DebugService from './services/debug.service';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +18,8 @@ export class AppComponent {
     private themeService: ThemeService,
     private scrollService: ScrollService,
     private resourceLoadingService: ResourceLoadingService,
-    private sizesService: SizesService
+    private sizesService: SizesService,
+    private debugService: DebugService
   ) {
     const darkThemeEnabled = themeService.isDarkThemeEnabled();
 

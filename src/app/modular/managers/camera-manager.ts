@@ -1,8 +1,9 @@
 import { Camera, CameraHelper, Group, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
-import { Experience } from "./experience";
+import { Experience } from "../experience";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import ScrollService from "../services/scroll.service";
-import SizesService from "../services/sizes.service";
+import ScrollService from "../../services/scroll.service";
+import SizesService from "../../services/sizes.service";
+import DebugService from "src/app/services/debug.service";
 
 export default class CameraManager {
     private experience: Experience;
@@ -39,7 +40,7 @@ export default class CameraManager {
             this.scrollCamera(scrollY);
         });
 
-        if (experience.getDebugManager().isDebugModeEnabled()) this.setDebugOptions();
+        if (DebugService.getInstance().isDebugModeEnabled()) this.setDebugOptions();
     }
 
     public getCamera(): Camera {
@@ -110,7 +111,7 @@ export default class CameraManager {
 
         this.experience.getScene().add(this.cameraHelper);
 
-        const gui = this.experience.getDebugManager().getGUI();
+        const gui = DebugService.getInstance().getGUI();
 
         const cameraFolder = gui.addFolder('Camera adjustment');
 

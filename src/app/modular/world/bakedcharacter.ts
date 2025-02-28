@@ -40,7 +40,7 @@ export default class BakedCharacter {
         if (resource == undefined || resource.scene == undefined) throw new Error('Could not load bakedCharacter resource');
 
         // Check for debug mode
-        if (experience.getDebugManager().isDebugModeEnabled()) this.debugEnabled = true;
+        if (DebugService.getInstance().isDebugModeEnabled()) this.debugEnabled = true;
 
         this.gltf = resource;
         this.sceneGroup = resource.scene;
