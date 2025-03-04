@@ -32,7 +32,7 @@ export class LoadingOverlayComponent {
       document.body.classList.remove('no-scroll');
     });
     ResourceLoadingService.getInstance().loadingProgressEvent.subscribe(progress => {
-      this.progressPercentage = progress * 100;
+      this.progressPercentage = parseFloat((progress * 100).toFixed(2));
     });
   }
 
