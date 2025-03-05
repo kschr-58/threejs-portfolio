@@ -7,11 +7,13 @@ import ResourceLoadingService from '../services/resource-loading.service';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
   private animationTimeline: gsap.core.Timeline;
   private headerElement!: HTMLElement;
   private subtextElement!: HTMLElement;
-  private overlayBars!: Element[];
+
+  private animationDuration = 0.75;
+  private secondaryAnimationDelay = 0.75;
 
   constructor() {
     this.animationTimeline = gsap.timeline().add('start');
@@ -21,25 +23,27 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  public ngOnInit(): void {
-    const header = document.getElementById('header') || undefined;
-    const subtext = document.getElementById('subtext') || undefined;
-    this.overlayBars = Array.from(document.getElementsByClassName('overlay-bar'));
-
-    if (header == undefined || subtext == undefined) throw new Error('Could not get document elements');
-
-    this.headerElement = header;
-    this.subtextElement = subtext;
-  }
-
   private startTextAnimation(): void {
+    gsap.set('#header', { opacity: 0 });
+    gsap.set('#subtext', { opacity: 0 });
+
+    const header = document.getElementById('header');
+    const subtext = document.getElementById('subtext');
+
+    const headerHeight = header?.offsetHeight;
+    const subtextHeight = subtext?.offsetHeight;
+
+    gsap.set('#header-overlay', { height: headerHeight });
+    gsap.set('#subtext-overlay', { height: subtextHeight });
+
     this.animationTimeline
-    .fromTo(this.headerElement, {autoAlpha: 1, yPercent: -100}, {autoAlpha: 1, yPercent: 0, duration: 1, delay: .5, ease: 'circ.out'}, 'start')
-    .fromTo(this.subtextElement, {autoAlpha: 1, yPercent: 100}, {autoAlpha: 1, yPercent: 0, duration: 1, delay: 1.3, ease: 'circ.out'}, 'start')
-    .then(() => {
-      for (let bar of this.overlayBars) {
-        if (bar instanceof HTMLElement) bar.style.visibility = 'hidden';
-      }
-    });
+    .to('#header-overlay', { scaleX: 1, duration: this.animationDuration, ease: 'power2.inOut' }, 0)
+    .set('#header-overlay', { transformOrigin: 'left' })
+    .set(header, { opacity: 1 })
+    .to('#header-overlay', { scaleX: 0, duration: this.animationDuration, ease: 'power2.inOut' })
+    .to('#subtext-overlay', { scaleX: 1, duration: this.animationDuration, ease: 'power2.inOut' }, this.secondaryAnimationDelay)
+    .set('#subtext-overlay', { transformOrigin: 'left' })
+    .set(subtext, { opacity: 1 })
+    .to('#subtext-overlay', { scaleX: 0, duration: this.animationDuration, ease: 'power2.inOut' });
   }
 }
