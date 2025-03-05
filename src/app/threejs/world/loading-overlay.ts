@@ -1,17 +1,16 @@
 import { Mesh, PlaneGeometry, ShaderMaterial } from "three";
-import { Experience } from "../experience";
-
 import vertexShader from "../shaders/overlay/vertex.glsl";
 import fragmentShader from "../shaders/overlay/fragment.glsl";
+import { ThreeJSComponent } from "../threejs.component";
 
 export default class LoadingOverlay { //TODO remove
-    private experience: Experience;
+    private threeComponent: ThreeJSComponent;
 
     private geometry!: PlaneGeometry;
     private overlayMaterial!: ShaderMaterial;
 
-    constructor(experience: Experience) {
-        this.experience = experience;
+    constructor(experience: ThreeJSComponent) {
+        this.threeComponent = experience;
 
         this.setGeometry();
     }
@@ -28,6 +27,6 @@ export default class LoadingOverlay { //TODO remove
         });
         const overlayMesh = new Mesh(this.geometry, this.overlayMaterial);
 
-        this.experience.getScene().add(overlayMesh);
+        this.threeComponent.getScene().add(overlayMesh);
     }
 }

@@ -1,4 +1,3 @@
-import { Experience } from "../experience";
 import { gsap } from 'gsap';
 import * as THREE from 'three';
 import { ThemeService } from "src/app/services/theme.service";
@@ -11,6 +10,7 @@ import vertexShader from "../shaders/theme-transition/vertex.glsl";
 import fragmentShader from "../shaders/theme-transition/fragment.glsl";
 import DebugService from "src/app/services/debug.service";
 import IShaderComponent from "./interfaces/shader-component";
+import { ThreeJSComponent } from "../threejs.component";
 
 export default class Character extends PageComponent3D implements IShaderComponent {
     // Resources
@@ -76,8 +76,8 @@ export default class Character extends PageComponent3D implements IShaderCompone
     // Debugging
     private debugObject: {[k: string]: any} = {};
 
-    constructor(experience: Experience, page: number, leftMargin: number, topMargin: number, zPosition: number) {
-        super(experience, page, leftMargin, topMargin, zPosition);
+    constructor(threeComponent: ThreeJSComponent, page: number, leftMargin: number, topMargin: number, zPosition: number) {
+        super(threeComponent, page, leftMargin, topMargin, zPosition);
 
         // Initialization
         this.mapResources();
@@ -151,9 +151,9 @@ export default class Character extends PageComponent3D implements IShaderCompone
 
         const meshLength = boundingBox.max.y - boundingBox.min.y;
 
-        const darkColor = this.experience.getSharedMaterialsUtils().getPrimaryColorDark();
-        const lightOutlineColor = this.experience.getSharedMaterialsUtils().getOutlineColorLight();
-        const darkOutlineColor = this.experience.getSharedMaterialsUtils().getOutlineColorDark();
+        const darkColor = this.threeComponent.getSharedMaterialsUtils().getPrimaryColorDark();
+        const lightOutlineColor = this.threeComponent.getSharedMaterialsUtils().getOutlineColorLight();
+        const darkOutlineColor = this.threeComponent.getSharedMaterialsUtils().getOutlineColorDark();
 
         this.shaderMaterial = new CustomShaderMaterial({
             baseMaterial: THREE.MeshBasicMaterial,
@@ -226,7 +226,7 @@ export default class Character extends PageComponent3D implements IShaderCompone
                     // Add head rotation object
                     this.headRotationObject = new THREE.Mesh(
                         new THREE.SphereGeometry(.2, 6, 6),
-                        this.experience.getSharedMaterialsUtils().getDebugMaterialRed()
+                        this.threeComponent.getSharedMaterialsUtils().getDebugMaterialRed()
                     );
 
                     this.headRotationObject.name = 'Head_Rotation_Object'; // Add name for debugging purposes
@@ -248,11 +248,11 @@ export default class Character extends PageComponent3D implements IShaderCompone
         this.snapVFXSprite = new THREE.Sprite(this.vfxMaterial);
         this.snapVFXSprite.visible = false;
 
-        this.experience.getScene().add(this.snapVFXSprite);
+        this.threeComponent.getScene().add(this.snapVFXSprite);
     }
 
     protected override addToScene(): void {
-        this.experience.getScene().add(this.sceneGroup);
+        this.threeComponent.getScene().add(this.sceneGroup);
         this.sceneGroup.scale.set(this.sceneScale, this.sceneScale, this.sceneScale);
 
         super.addToScene();
@@ -263,7 +263,7 @@ export default class Character extends PageComponent3D implements IShaderCompone
     // #region Lifecycle
 
     public tick() {
-        let deltaTime = this.experience.getTimeUtils().getDeltaTime();
+        let deltaTime = this.threeComponent.getTimeUtils().getDeltaTime();
 
         if (this.deltaTimeNormalizationRequired) {
             deltaTime = .016; // Default to 60 fps for normalization
@@ -359,7 +359,7 @@ export default class Character extends PageComponent3D implements IShaderCompone
     private startPeriodicAnimations(): void {
         const blinkMTAction = this.getAnimationAction('Blink_SK');
 
-        this.experience.getTimeUtils().registerTimedEvent(this.blinkDelay).subscribe(() => {
+        this.threeComponent.getTimeUtils().registerTimedEvent(this.blinkDelay).subscribe(() => {
             if (!this.isCurrentlyPlayingMTAction) this.playAnimationAction(blinkMTAction);
         });
 
@@ -491,16 +491,16 @@ export default class Character extends PageComponent3D implements IShaderCompone
     private addTrackingPoint(): void {
         this.headTrackingPointObject = new THREE.Mesh(
             new THREE.PlaneGeometry(.01, .01), 
-            this.experience.getSharedMaterialsUtils().getDebugMaterialCyan()
+            this.threeComponent.getSharedMaterialsUtils().getDebugMaterialCyan()
         );
 
-        this.experience.getScene().add(this.headTrackingPointObject);
+        this.threeComponent.getScene().add(this.headTrackingPointObject);
     }
 
     private addRaycastPlane(): void { // TODO turn raycast plane into separate Component3D object
         this.raycastPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(this.raycastPlaneRadius.x, this.raycastPlaneRadius.y),
-            this.experience.getSharedMaterialsUtils().getDebugMaterialRed()
+            this.threeComponent.getSharedMaterialsUtils().getDebugMaterialRed()
         );
 
         this.raycastPlane.position.x = this.raycastPlaneOffset.x;
@@ -517,7 +517,7 @@ export default class Character extends PageComponent3D implements IShaderCompone
         // Create raycastobject and add to raycast utils
         const raycastObject = new RaycastObject(this.raycastPlane, onHoverFunction, onCursorExitFunction);
         
-        this.experience.getRaycastUtils().addRaycastObject(raycastObject);
+        this.threeComponent.getRaycastUtils().addRaycastObject(raycastObject);
     }
 
     private enableHeadTracking(intersection: THREE.Intersection): void {

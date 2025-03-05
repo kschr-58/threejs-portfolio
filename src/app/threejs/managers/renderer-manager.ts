@@ -1,15 +1,15 @@
 import { CineonToneMapping, LinearSRGBColorSpace, PCFShadowMap, WebGLRenderer } from "three";
-import { Experience } from "../experience";
 import SizesService from "../../services/sizes.service";
+import { ThreeJSComponent } from "../threejs.component";
 
 export class RendererManager {
-    private experience: Experience;
+    private threeComponent: ThreeJSComponent;
 
     // ThreeJS objects
     private renderer!: WebGLRenderer;
 
-    constructor(experience: Experience) {
-        this.experience = experience;
+    constructor(experience: ThreeJSComponent) {
+        this.threeComponent = experience;
 
         this.initializeRendrerer();
     }
@@ -22,8 +22,8 @@ export class RendererManager {
     }
 
     public tick(): void {
-        const scene = this.experience.getScene();
-        const camera = this.experience.getCameraManager().getCamera();
+        const scene = this.threeComponent.getScene();
+        const camera = this.threeComponent.getCameraManager().getCamera();
 
         this.renderer.render(scene, camera);
     }
@@ -33,7 +33,7 @@ export class RendererManager {
     }
 
     private initializeRendrerer(): void {
-        const canvas = this.experience.getCanvas();
+        const canvas = this.threeComponent.getCanvas();
         const sizes = SizesService.getInstance();
 
         this.renderer = new WebGLRenderer({

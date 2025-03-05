@@ -1,12 +1,11 @@
-import { Color, Group, Mesh, MeshBasicMaterial, Plane, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
-import { Experience } from "../../experience";
+import { Group, Mesh} from "three";
 import Logo from "./logo";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
-import PagePlane from "../page-plane";
+import { ThreeJSComponent } from "../../threejs.component";
 
 export default class LogosCollection {
     // ThreeJS components
-    private experience: Experience;
+    private threeComponent: ThreeJSComponent;
     private sceneGroup!: Group;
     private logoMeshes: Mesh[] = [];
 
@@ -26,7 +25,7 @@ export default class LogosCollection {
     private debugObject: {[k: string]: any} = {};
 
     constructor(
-        experience: Experience, 
+        experience: ThreeJSComponent, 
         page: number, 
         collectionLeftMargin: number, 
         collectionTopMargin: number, 
@@ -35,7 +34,7 @@ export default class LogosCollection {
         logoHorizontalMargin: number,
         logoVerticalMargin: number
     ) {
-        this.experience = experience;
+        this.threeComponent = experience;
         this.collectionPage = page;
         this.collectionLeftMargin = collectionLeftMargin;
         this.collectionTopMargin = collectionTopMargin;
@@ -75,7 +74,7 @@ export default class LogosCollection {
 
             const xMargin = this.collectionLeftMargin + (this.logoHorizontalMargin * columnIndex);
 
-            const newLogo = new Logo(this.experience, logoMesh, this.collectionPage, xMargin, yMargin, this.collectionZPosition);
+            const newLogo = new Logo(this.threeComponent, logoMesh, this.collectionPage, xMargin, yMargin, this.collectionZPosition);
 
             columnIndex++;
         }

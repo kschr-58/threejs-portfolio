@@ -1,13 +1,13 @@
 import * as THREE from "three";
-import { Experience } from "../experience";
 
 // Shader imports
 import vertexShader from "../shaders/coffeeSmoke/vertex.glsl";
 import fragmentShader from "../shaders/coffeeSmoke/fragment.glsl";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
+import { ThreeJSComponent } from "../threejs.component";
 
 export default class Study {
-    private experience: Experience;
+    private threeComponent: ThreeJSComponent;
     private sceneGroup: THREE.Group;
     private perlinTexture!: THREE.Texture;
     private smokeMaterial!: THREE.ShaderMaterial;
@@ -17,8 +17,8 @@ export default class Study {
     private groundPlaneMesh!: THREE.Mesh;
     private coffeePosition = new THREE.Vector3();
 
-    constructor(experience: Experience) {
-        this.experience = experience;
+    constructor(experience: ThreeJSComponent) {
+        this.threeComponent = experience;
 
         const resource = ResourceLoadingService.getInstance().gltfMap.get('study');
         if (resource == undefined || resource.scene == undefined) throw new Error('Study resource cannot be loaded');
@@ -36,13 +36,13 @@ export default class Study {
     }
 
     public tick(): void {
-        const elapsedTime = this.experience.getTimeUtils().getElapsedTime();
+        const elapsedTime = this.threeComponent.getTimeUtils().getElapsedTime();
 
         this.smokeMaterial.uniforms['uTime'].value = elapsedTime;
     }
 
     private addToScene(): void {
-        this.experience.getScene().add(this.sceneGroup);
+        this.threeComponent.getScene().add(this.sceneGroup);
     }
 
     private mapComponents(): void {
@@ -81,6 +81,6 @@ export default class Study {
         this.smokeMesh.position.copy(this.coffeePosition);
         this.smokeMesh.position.y += .1;
 
-        this.experience.getScene().add(this.smokeMesh);
+        this.threeComponent.getScene().add(this.smokeMesh);
     }
 }

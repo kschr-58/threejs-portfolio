@@ -1,9 +1,12 @@
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { Experience } from "../experience";
 import * as THREE from 'three';
+import ResourceLoadingService from "src/app/services/resource-loading.service";
+import SizesService from "src/app/services/sizes.service";
+import DebugService from "src/app/services/debug.service";
+import { ThreeJSComponent } from "../threejs.component";
 
-export default class BakedCharacter {
-    private experience: Experience;
+export default class MonoboyTest {
+    private threeComponent: ThreeJSComponent;
 
     // Animation
     private animationMixer: THREE.AnimationMixer;
@@ -33,26 +36,29 @@ export default class BakedCharacter {
     private headRotationEnabled = false;
     private debugEnabled = false;
 
-    constructor(experience: Experience) {
-        this.experience = experience;
+    constructor(experience: ThreeJSComponent) {
+        this.threeComponent = experience;
 
-        const resource = experience.getResourceManager().gltfMap.get('bakedCharacter');
-        if (resource == undefined || resource.scene == undefined) throw new Error('Could not load bakedCharacter resource');
-
-        // Check for debug mode
-        if (DebugService.getInstance().isDebugModeEnabled()) this.debugEnabled = true;
+        const resource = ResourceLoadingService.getInstance().gltfMap.get('monoboyTest');
+        if (resource == undefined || resource.scene == undefined) throw new Error('Could not load monoboytest resource');
 
         this.gltf = resource;
         this.sceneGroup = resource.scene;
+        this.sceneGroup.scale.set(3.8, 3.8, 3.8);
+        this.sceneGroup.position.set(1, .5, 1.4);
 
         this.animationMixer = new THREE.AnimationMixer(this.sceneGroup);
         this.animations = resource.animations;
 
+        // Check for debug mode
+        if (DebugService.getInstance().isDebugModeEnabled()) this.debugEnabled = true;
+
+        this.setMaterials();
         this.addToScene();
         this.startSceneAnimations();
         this.addTrackingSphere();
         this.addRaycastPlane();
-        this.addTrackingPoint();
+        this.addDebugSpheres();
     }
 
     public tick() {
@@ -64,51 +70,49 @@ export default class BakedCharacter {
         else this.headBone.quaternion.slerp(this.defaultRotation, this.headRotationSpeed);
     }
 
+    private setMaterials() {
+        const outlineMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+
+        this.sceneGroup.traverse(node => {
+            if (node instanceof THREE.Mesh && node.material.name == 'Outline_Black') node.material = outlineMaterial;
+        });
+    }
+
     private addTrackingSphere() {
         this.sceneGroup.traverse(node => {
-            if (node instanceof THREE.Bone && node.name == "Head") {
+            if (node instanceof THREE.Bone && node.name == "DEF-spine006") {
                 this.headBone = node;
                 // Set default head rotation
                 this.defaultRotation = this.headBone.quaternion.clone();
 
                 // Add head rotation object
                 this.headRotationObject = new THREE.Mesh(
-                    new THREE.SphereGeometry(.7, 6, 6),
+                    new THREE.SphereGeometry(.2, 6, 6),
                     new THREE.MeshBasicMaterial({color: 'yellow', wireframe: true, transparent: true, opacity: this.debugEnabled ? 0.5 : 0})
                 );
 
                 this.headRotationObject.position.copy(this.headBone.position);
-                this.headRotationObject.position.y += .25;
                 this.headBone.add(this.headRotationObject);
             }
         });
     }
 
-    private addTrackingPoint(): void {
-        this.debugHeadTrackingSphere = new THREE.Mesh(
-            new THREE.SphereGeometry(.1, 6, 6), 
-            new THREE.MeshBasicMaterial({color: 'blue', wireframe: true, transparent: true, opacity: this.debugEnabled ? 0.5 : 0})
-        );
-
-        this.experience.getScene().add(this.debugHeadTrackingSphere);
-    }
-
     private addRaycastPlane(): void {
         this.raycastPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(3.5, 3.5),
-            new THREE.MeshStandardMaterial({color: 'red', transparent: true, opacity: this.debugEnabled ? 0.5 : 0, wireframe: true})
+            new THREE.MeshStandardMaterial({color: 'red', wireframe: true, transparent: true, opacity: this.debugEnabled ? 0.5 : 0})
         );
 
-        this.raycastPlane.position.set(1.8, 5, 2.1);
+        this.raycastPlane.position.set(1.7, 5, 2.1);
         this.raycastPlane.rotateX(Math.PI / -4);
 
-        this.experience.getScene().add(this.raycastPlane);
+        this.threeComponent.getScene().add(this.raycastPlane);
 
         this.raycastPlane.updateMatrixWorld();
     }
 
     private addToScene() {
-        this.experience.getScene().add(this.sceneGroup);
+        this.threeComponent.getScene().add(this.sceneGroup);
     }
 
     private startSceneAnimations(): void {
@@ -117,44 +121,55 @@ export default class BakedCharacter {
         sittingAction.clampWhenFinished = true;
         sittingAction.loop = THREE.LoopRepeat;
 
+        const typingClip = THREE.AnimationClip.findByName(this.animations, 'Typing');
+        THREE.AnimationUtils.makeClipAdditive(typingClip);
+        const typingAction = this.animationMixer.clipAction(typingClip);
+        typingAction.blendMode = THREE.AdditiveAnimationBlendMode;
+
+        const headClipA = THREE.AnimationClip.findByName(this.animations, 'Head_Movement_A');
+        THREE.AnimationUtils.makeClipAdditive(headClipA);
+        const headActionA = this.animationMixer.clipAction(headClipA);
+        headActionA.blendMode = THREE.AdditiveAnimationBlendMode;
+
         sittingAction.play();
+        typingAction.play();
     }
 
     // region Raycasting
 
     private cursorRaycast(): void {
         // Get mouseposition
-        const windowWidth = this.SizesService.getInstance().getWidth();
-        const windowHeight = this.SizesService.getInstance().getHeight();
-        const mousePos = this.experience.getRaycastUtils().getCursorPosition();
+        const windowWidth = SizesService.getInstance().getWidth();
+        const windowHeight = SizesService.getInstance().getHeight();
+        const mousePos = this.threeComponent.getRaycastUtils().getCursorPosition();
 
         this.mousePosition.x = mousePos.x / windowWidth * 2 - 1;
         this.mousePosition.y = (mousePos.y / windowHeight * 2 - 1) * - 1;
 
         const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(this.mousePosition, this.experience.getCameraManager().getCamera());
+        raycaster.setFromCamera(this.mousePosition, this.threeComponent.getCameraManager().getCamera());
 
         const intersects = raycaster.intersectObjects([this.raycastPlane, this.headRotationObject]);
         if (intersects.length > 0) {
             // Check if intersect with raycast plane exists
             const headTrackingPlaneIntersection = intersects.find(
-                intersect => intersect.object == this.raycastPlane
+            intersect => intersect.object == this.raycastPlane
             );
 
             // Check for interactable objects being intersected
             const headBoneIntersection = intersects.find(
-                intersect => intersect.object == this.headRotationObject
+            intersect => intersect.object == this.headRotationObject
             );
 
             if (headTrackingPlaneIntersection) {
-                const contactPoint = headTrackingPlaneIntersection.point;
+            const contactPoint = headTrackingPlaneIntersection.point;
 
-                this.debugHeadTrackingSphere.position.x = contactPoint.x;
-                this.debugHeadTrackingSphere.position.y = contactPoint.y;
-                this.debugHeadTrackingSphere.position.z = contactPoint.z;
-            
-                this.headRotationObject.lookAt(this.debugHeadTrackingSphere.position);
-                this.headRotationEnabled = true;
+            this.debugHeadTrackingSphere.position.x = contactPoint.x;
+            this.debugHeadTrackingSphere.position.y = contactPoint.y;
+            this.debugHeadTrackingSphere.position.z = contactPoint.z;
+        
+            this.headRotationObject.lookAt(contactPoint);
+            this.headRotationEnabled = true;
             }
 
             if (headBoneIntersection) this.currentInteractionObject = headBoneIntersection;
@@ -165,10 +180,15 @@ export default class BakedCharacter {
 
         this.headRotationEnabled = false;
     }
+
+    private addDebugSpheres(): void {
+        this.debugHeadTrackingSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(.1, 6, 6), 
+            new THREE.MeshBasicMaterial({color: 'blue', wireframe: true, transparent: true, opacity: this.debugEnabled ? 0.5 : 0})
+        );
+
+        this.threeComponent.getScene().add(this.debugHeadTrackingSphere);
+    }
     
-    // endregion
-
-    // region Debug options
-
     // endregion
 }

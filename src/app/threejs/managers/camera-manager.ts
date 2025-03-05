@@ -1,12 +1,12 @@
 import { Camera, CameraHelper, Group, OrthographicCamera, PerspectiveCamera, Vector3 } from "three";
-import { Experience } from "../experience";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import ScrollService from "../../services/scroll.service";
 import SizesService from "../../services/sizes.service";
 import DebugService from "src/app/services/debug.service";
+import { ThreeJSComponent } from "../threejs.component";
 
 export default class CameraManager {
-    private experience: Experience;
+    private threeComponent: ThreeJSComponent;
     private cameraGroup = new Group();
 
     // ThreeJS objects
@@ -30,8 +30,8 @@ export default class CameraManager {
     private cameraHelper!: CameraHelper;
     private orthographicEnabled = true;
 
-    constructor(experience: Experience) {
-        this.experience = experience;
+    constructor(threeComponent: ThreeJSComponent) {
+        this.threeComponent = threeComponent;
 
         this.initializeCamera();
 
@@ -89,7 +89,7 @@ export default class CameraManager {
 
         this.camera.position.copy(this.orthoCamStartingPosition);
 
-        this.experience.getScene().add(this.camera);
+        this.threeComponent.getScene().add(this.camera);
     }
 
     private scrollCamera(scrollY: number): void {
@@ -109,7 +109,7 @@ export default class CameraManager {
         // Add camera helper
         this.cameraHelper = new CameraHelper(this.camera);
 
-        this.experience.getScene().add(this.cameraHelper);
+        this.threeComponent.getScene().add(this.cameraHelper);
 
         const gui = DebugService.getInstance().getGUI();
 
@@ -150,7 +150,7 @@ export default class CameraManager {
     private initializeDebugCamera(): void {
         const sizes = SizesService.getInstance();
         const aspect = sizes.getAspect();
-        const scene = this.experience.getScene();
+        const scene = this.threeComponent.getScene();
 
         this.debugCamera = new PerspectiveCamera(
             this.fieldOfView,
@@ -167,8 +167,8 @@ export default class CameraManager {
     }
 
     private initializeOrbitControls(): void {
-        const canvas = this.experience.getCanvas();
-        const scene = this.experience.getScene();
+        const canvas = this.threeComponent.getCanvas();
+        const scene = this.threeComponent.getScene();
 
         this.controls = new OrbitControls(this.debugCamera, canvas);
         this.controls.enableDamping = true;

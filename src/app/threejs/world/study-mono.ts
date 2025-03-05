@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Experience } from "../experience";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
 import PageComponent3D from "./abstract-classes/page-component-3d";
 import DebugService from "src/app/services/debug.service";
@@ -9,6 +8,7 @@ import vertexShader from "../shaders/theme-transition/vertex.glsl";
 import fragmentShader from "../shaders/theme-transition/fragment.glsl";
 import { ThemeService } from "src/app/services/theme.service";
 import gsap from 'gsap';
+import { ThreeJSComponent } from "../threejs.component";
 
 export default class StudyMono extends PageComponent3D implements IShaderComponent {
     // Resources
@@ -29,8 +29,8 @@ export default class StudyMono extends PageComponent3D implements IShaderCompone
     private rotationAmount = .05;
     private textureFillDuration = 1;
 
-    constructor(experience: Experience, page: number, leftMargin: number, topMargin: number, zPosition: number) {
-        super(experience, page, leftMargin, topMargin, zPosition);
+    constructor(threeComponent: ThreeJSComponent, page: number, leftMargin: number, topMargin: number, zPosition: number) {
+        super(threeComponent, page, leftMargin, topMargin, zPosition);
 
         this.mapResources();
         this.mapSceneComponents();
@@ -48,7 +48,7 @@ export default class StudyMono extends PageComponent3D implements IShaderCompone
     }
 
     public tick(): void {
-        const elapsedTime = this.experience.getTimeUtils().getElapsedTime();
+        const elapsedTime = this.threeComponent.getTimeUtils().getElapsedTime();
         const rotationOffset = Math.sin(elapsedTime) * this.rotationAmount;
 
         this.positionableObject.rotation.y = this.defaultRotation.y + rotationOffset; // TODO rotate based on horizontal mouse movement
@@ -60,8 +60,8 @@ export default class StudyMono extends PageComponent3D implements IShaderCompone
 
         const meshLength = boundingBox.max.y - boundingBox.min.y;
 
-        const lightOutlineColor = this.experience.getSharedMaterialsUtils().getOutlineColorLight();
-        const darkOutlineColor = this.experience.getSharedMaterialsUtils().getOutlineColorDark();
+        const lightOutlineColor = this.threeComponent.getSharedMaterialsUtils().getOutlineColorLight();
+        const darkOutlineColor = this.threeComponent.getSharedMaterialsUtils().getOutlineColorDark();
 
         this.shaderMaterial = new CustomShaderMaterial({
             baseMaterial: THREE.MeshBasicMaterial,
@@ -109,12 +109,12 @@ export default class StudyMono extends PageComponent3D implements IShaderCompone
         
         this.sceneGroup = resource.scene;
 
-        this.lightColor = this.experience.getSharedMaterialsUtils().getPrimaryColorLight();
-        this.darkColor = this.experience.getSharedMaterialsUtils().getPrimaryColorDark();
+        this.lightColor = this.threeComponent.getSharedMaterialsUtils().getPrimaryColorLight();
+        this.darkColor = this.threeComponent.getSharedMaterialsUtils().getPrimaryColorDark();
     }
 
     private mapSceneComponents(): void {
-        const outlineMat = this.experience.getSharedMaterialsUtils().getOutlineMaterial();
+        const outlineMat = this.threeComponent.getSharedMaterialsUtils().getOutlineMaterial();
 
         this.sceneGroup.traverse(node => {
             if (node instanceof THREE.Object3D && node.name == 'Scene') {
@@ -139,7 +139,7 @@ export default class StudyMono extends PageComponent3D implements IShaderCompone
             this.defaultRotation.z
         );
 
-        this.experience.getScene().add(this.sceneGroup);
+        this.threeComponent.getScene().add(this.sceneGroup);
 
         super.addToScene();
     }

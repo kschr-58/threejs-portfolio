@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { Experience } from "../experience";
 import PageComponent3D from "./abstract-classes/page-component-3d";
 import SizesService from "src/app/services/sizes.service";
 import IShaderComponent from "./interfaces/shader-component";
@@ -8,6 +7,7 @@ import vertexShader from "../shaders/theme-transition/vertex.glsl";
 import fragmentShader from "../shaders/theme-transition/fragment.glsl";
 import { ThemeService } from "src/app/services/theme.service";
 import gsap from 'gsap';
+import { ThreeJSComponent } from "../threejs.component";
 
 export default class PagePlane extends PageComponent3D implements IShaderComponent {
     private geometry!: THREE.PlaneGeometry;
@@ -21,7 +21,7 @@ export default class PagePlane extends PageComponent3D implements IShaderCompone
     private textureFillDuration: number = 1;
 
     constructor(
-        experience: Experience,
+        threeComponent: ThreeJSComponent,
         page: number,
         leftMargin: number,
         topMargin: number,
@@ -30,7 +30,7 @@ export default class PagePlane extends PageComponent3D implements IShaderCompone
         lightColor: THREE.Color,
         darkColor: THREE.Color) {
             
-        super(experience, page, leftMargin, topMargin, zPosition);
+        super(threeComponent, page, leftMargin, topMargin, zPosition);
 
         this.planeDimensions = planeDimensions;
         this.lightColor = lightColor;
@@ -99,7 +99,7 @@ export default class PagePlane extends PageComponent3D implements IShaderCompone
     }
 
     protected override addToScene(): void {
-        this.experience.getScene().add(this.mesh);
+        this.threeComponent.getScene().add(this.mesh);
 
         super.addToScene();
     }

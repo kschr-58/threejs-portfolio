@@ -1,9 +1,9 @@
-import { Material, Mesh, Object3D } from "three";
-import { Experience } from "../../experience";
+import { Mesh, Object3D } from "three";
 import SizesService from "src/app/services/sizes.service";
+import { ThreeJSComponent } from "../../threejs.component";
 
 export default abstract class PageComponent3D {
-    protected experience: Experience;
+    protected threeComponent: ThreeJSComponent;
     protected positionableObject!: Object3D;
     protected mesh!: Mesh;
 
@@ -13,8 +13,8 @@ export default abstract class PageComponent3D {
     protected topMargin: number;    // Value represents a percentage
     protected zPosition: number;
 
-    constructor(experience: Experience, page: number, leftMargin: number, topMargin: number, zPos: number) {
-        this.experience = experience;
+    constructor(experience: ThreeJSComponent, page: number, leftMargin: number, topMargin: number, zPos: number) {
+        this.threeComponent = experience;
         this.page = page;
         this.leftMargin = leftMargin;
         this.topMargin = topMargin;

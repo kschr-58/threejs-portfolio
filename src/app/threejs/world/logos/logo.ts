@@ -1,5 +1,4 @@
 import { Mesh, ShaderMaterial, Raycaster, Texture, Vector3, BoxGeometry, MeshBasicMaterial, Color, Material } from "three";
-import { Experience } from "../../experience";
 import PageComponent3D from "../abstract-classes/page-component-3d";
 import gsap from 'gsap';
 import RaycastObject from "src/models/raycast-object";
@@ -7,7 +6,7 @@ import vertexShader from "../../shaders/logos/vertex.glsl";
 import fragmentShader from "../../shaders/logos/fragment.glsl";
 import ResourceLoadingService from "src/app/services/resource-loading.service";
 import SizesService from "src/app/services/sizes.service";
-import ScrollService from "src/app/services/scroll.service";
+import { ThreeJSComponent } from "../../threejs.component";
 
 export default class Logo extends PageComponent3D {
     // Resources
@@ -38,14 +37,14 @@ export default class Logo extends PageComponent3D {
     private idleAnimationTL: gsap.core.Timeline;
 
     constructor(
-        experience: Experience,
+        threeComponent: ThreeJSComponent,
         mesh: Mesh,
         page: number,
         leftMargin: number,
         topMargin: number,
         zPosition: number,) {
 
-        super(experience, page, leftMargin, topMargin, zPosition);
+        super(threeComponent, page, leftMargin, topMargin, zPosition);
 
         this.movementTransitionTL = gsap.timeline({paused: true});
         this.textureTransitionTL = gsap.timeline({paused: true});
@@ -128,7 +127,7 @@ export default class Logo extends PageComponent3D {
     }
     
     protected override addToScene(): void {
-        this.experience.getScene().add(this.mesh);
+        this.threeComponent.getScene().add(this.mesh);
 
         super.addToScene();
     }
@@ -142,7 +141,7 @@ export default class Logo extends PageComponent3D {
         const onExitFunction = () => this.onCursorExit();
         const raycastObject = new RaycastObject(this.mesh, undefined, onExitFunction, undefined, onInitialHoverFunction);
 
-        this.experience.getRaycastUtils().addRaycastObject(raycastObject);
+        this.threeComponent.getRaycastUtils().addRaycastObject(raycastObject);
     }
 
     private registerAnimations(): void {

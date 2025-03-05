@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Experience } from '../modular/experience';
+import { Component } from '@angular/core';
 import { ThemeService } from 'src/app/services/theme.service';
 
 @Component({
