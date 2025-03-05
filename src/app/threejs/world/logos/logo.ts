@@ -225,7 +225,8 @@ export default class Logo extends PageComponent3D {
         this.movementTransitionTL.timeScale(1.25);
         this.movementTransitionTL.reverse()
         .then(() => {
-            this.idleAnimationTL.restart();
+            const progress = this.movementTransitionTL.progress();
+            if (progress == 0) this.idleAnimationTL.restart();
         });
     }
 
