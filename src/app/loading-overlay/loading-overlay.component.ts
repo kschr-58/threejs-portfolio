@@ -9,6 +9,7 @@ import gsap from 'gsap';
 })
 export class LoadingOverlayComponent {
   public progressPercentage: number = 0;
+  public errorMessage: string | null = null;
   public isLoading: boolean = false;
 
   constructor() {
@@ -20,7 +21,13 @@ export class LoadingOverlayComponent {
       document.body.classList.add('no-scroll');
     });
 
-    ResourceLoadingService.getInstance().loadingFinishedEvent.subscribe(() => {
+    ResourceLoadingService.getInstance().loadingFinishedEvent.subscribe(success => {
+
+      if (!success) {
+        this.errorMessage = 'Failed to load resources, please try refreshing the page.';
+        return;
+      }
+
       const overlay = document.getElementById('overlay-container');
       if (overlay == undefined) return;
 

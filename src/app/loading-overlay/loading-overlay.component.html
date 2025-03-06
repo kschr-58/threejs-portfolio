@@ -1,4 +1,5 @@
 <div id="overlay-container" *ngIf="isLoading">
     <h3>Loading assets, please wait a moment</h3>
     <h3>{{ progressPercentage }}%</h3>
+    <h3 *ngIf="errorMessage">{{ errorMessage }}</h3>
 </div>

@@ -220,7 +220,6 @@ export default class Logo extends PageComponent3D {
 
     private onCursorExit(): void {
         this.undoTextureFill();
-        this.hideTextElement();
 
         this.movementTransitionTL.timeScale(1.25);
         this.movementTransitionTL.reverse()
@@ -238,13 +237,6 @@ export default class Logo extends PageComponent3D {
     private undoTextureFill(): void {
         // gsap.to(this.logoMaterial.uniforms['uTextureCoverage'], { value: 0.0, duration: this.transitionDuration, ease: 'power1.out'});
         this.textureTransitionTL.reverse();
-    }
-
-    private hideTextElement(): void {
-        const logoNameElement = document.getElementById('logo-name');
-        if (logoNameElement == undefined) throw new Error('Cannot locate logo name element in document');
-
-        logoNameElement.style.visibility = 'hidden';
     }
 
     private resize(): void {

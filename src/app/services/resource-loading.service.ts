@@ -88,7 +88,8 @@ export default class ResourceLoadingService {
                 this.loadingProgressEvent.next(progress);
             },
             (url) => {
-                this.loadingFinishedEvent.next(false); // TODO error handling
+                this.loadingFinishedEvent.next(false);
+                throw new Error(`Could not load resource: ${url}`);
             }
         );
     }

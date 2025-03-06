@@ -1,1 +1,4 @@
-<div class="theme-button" (click)="onClick()" [ngClass]="{'inverted' : isDarkTheme}"></div>
+<div class="theme-button" (click)="onClick()" [ngClass]="{'disabled' : isThemeTransitioning}">
+    <div id="icon" [ngClass]="{'inverted' : isDarkTheme}"></div>
+    <div id="border"></div>
+</div>

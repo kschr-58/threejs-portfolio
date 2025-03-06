@@ -16,7 +16,7 @@ export class HomeComponent {
   private secondaryAnimationDelay = 0.75;
 
   constructor() {
-    this.animationTimeline = gsap.timeline().add('start');
+    this.animationTimeline = gsap.timeline();
 
     ResourceLoadingService.getInstance().loadingFinishedEvent.subscribe(() => {
       this.startTextAnimation();
